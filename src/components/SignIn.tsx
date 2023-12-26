@@ -87,6 +87,7 @@ export function SignIn() {
             </div>
             <p className={clsErrMsg}>{errors["password"]?.message}</p>
           </div>
+          { /* TODO: 押下時にpassがtype=textのとき、パスワード保存サジェストでない */ }
           <Btn type="submit">ログイン</Btn>
         </form>
       </div>

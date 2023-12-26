@@ -4,12 +4,13 @@ import { AddAnimal } from "./components/AddAnimal";
 import { useState, useEffect } from "react";
 import { ListAnimal } from "./components/ListAnimal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faListUl, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faListUl, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { SingleAnimal } from "./components/SingleAnimal";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./util/firebase";
 import { User } from "firebase/auth";
 import { SignIn } from "./components/SignIn";
+import { Account } from "./components/Account";
 
 export const App = () => {
   const [currentComp, setCurrentComp] = useState("list");
@@ -24,6 +25,11 @@ export const App = () => {
       name: "add",
       title: "新規追加",
       icon: faPlus,
+    },
+    {
+      name: "account",
+      title: "アカウント",
+      icon: faUser,
     },
   ];
 
@@ -48,13 +54,18 @@ export const App = () => {
 
   return (
     <>
-      {user === undefined && <div>Undefined</div>}
+      {user === undefined && (
+        // ユーザー検証中
+        <div></div>
+      )}
       {user === null && (
+        // ユーザー未ログイン
         <div>
           <SignIn />
         </div>
       )}
       {user && (
+        // ユーザーログイン時
         <div className="bg-slate-50 text-slate-900">
           <header className="border-b h-16 sticky flex items-center">
             <Container>
@@ -102,6 +113,7 @@ export const App = () => {
                 )}
                 {currentComp === "add" && <AddAnimal />}
                 {currentComp === "single" && <SingleAnimal />}
+                {currentComp === "account" && <Account />}
               </div>
             </main>
           </Container>
