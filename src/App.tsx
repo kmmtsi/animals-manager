@@ -9,7 +9,7 @@ import { SingleAnimal } from "./components/SingleAnimal";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./util/firebase";
 import { User } from "firebase/auth";
-import { SignIn } from "./components/SignIn";
+import { Sign } from "./components/Sign";
 import { Account } from "./components/Account";
 
 export const App = () => {
@@ -61,7 +61,7 @@ export const App = () => {
       {user === null && (
         // ユーザー未ログイン
         <div>
-          <SignIn />
+          <Sign />
         </div>
       )}
       {user && (
