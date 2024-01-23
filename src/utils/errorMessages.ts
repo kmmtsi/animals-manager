@@ -10,4 +10,6 @@ export const errMsgs = {
   wrongPassword: "パスワードが間違っています",
   invalidCredential: "ログイン情報に誤りがあります",
   unKnownError: "エラーが発生しました",
+  permissionDenied: "権限がありません",
+  userNotCreated: "申し訳ありません。予期せぬエラーが発生しました。管理者までご報告ください。" // TODO：文章訂正
 };

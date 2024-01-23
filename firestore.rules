@@ -2,8 +2,100 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    //==================== ユーザー ====================//
+
+    match /users/{userId} {
+
+      //***** 単一ユーザー取得 *****//
+      allow get: if 
+        isUserAuthenticated() &&
+        isUserHimself();
+
+      //***** ユーザー追加 *****//
+      allow create: if 
+        isUserAuthenticated() &&
+        isUserHimself() &&
+        request.resource.data.keys().hasOnly([
+          "userId", 
+          "email", 
+          "createdAt"
+        ]) &&
+        // userId
+        request.resource.data.userId is string &&
+        request.resource.data.userId.size() > 0 &&
+        request.resource.data.userId == userId &&
+        // email
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 0 &&
+         // createdAt
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.createdAt == request.time;
+      
+      //==================== 動物 ====================//
+
+      match /animals/{animalId} {
+        //***** 単一動物取得 *****//
+        allow get: if 
+          isUserAuthenticated() && 
+          isUserHimself();
+      
+        //***** 複数動物取得 *****//
+        allow list: if 
+          isUserAuthenticated() &&
+          isUserHimself();
+
+        //***** 動物追加 *****//
+        allow create: if 
+          isUserAuthenticated() &&
+          isUserHimself() &&
+          request.resource.data.keys().hasOnly([
+              "name", 
+              "sex", 
+              "mother", 
+              "father", 
+              "note", 
+              "ownerId", 
+              "createdAt", 
+              "updatedAt"
+          ]) &&
+          // name
+          request.resource.data.name is string &&
+          request.resource.data.name.size() > 0 && // 必須
+          request.resource.data.name.size() <= 30 &&
+          // sex
+          request.resource.data.sex is string &&
+          request.resource.data.sex.size() >= 0 &&
+          request.resource.data.sex in ["" || "オス" || "恐らくオス" || "メス" || "恐らくメス" || "不明" | "どちらでもない"] && 
+          // mother
+          request.resource.data.mother is string &&
+          request.resource.data.mother.size() >= 0 &&
+          request.resource.data.mother.size() <= 30 &&
+          // father
+          request.resource.data.father is string &&
+          request.resource.data.father.size() >= 0 &&
+          request.resource.data.father.size() <= 30 &&
+          // note
+          request.resource.data.note is string &&
+          request.resource.data.note.size() >= 0 &&
+          request.resource.data.note.size() <= 30 &&
+          // ownerId
+          request.resource.data.ownerId === userId && 
+          request.resource.data.ownerId === request.auth.uid && 
+          // createdAt
+          request.resource.data.createdAt is timestamp &&
+          request.resource.data.createdAt == request.time && 
+          // updatedAt
+          request.resource.data.updatedAt is timestamp &&
+          request.resource.data.updatedAt == request.time;
+      }
+
+      function isUserAuthenticated() {
+        return request.auth != null;
+      }
+      function isUserHimself() {
+        return request.auth.uid == userId;
+      }
     }
   }
 }

@@ -1,31 +1,27 @@
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../util/firebase";
-import useSWRImmutable from "swr/immutable";
-import { PageTitle } from "./PageTitle";
+import { db } from "../utils/firebase";
+import useSWR from "swr";
+// import useSWRImmutable from "swr/immutable";
+import { PageTitle } from "./generalUI/PageTitle";
+import { User } from "firebase/auth";
 
-type Props = {
+export const ListAnimal = ({
+  setCurrentComp,
+  user,
+}: {
   setCurrentComp: (name: string) => void;
-};
-
-export const ListAnimal: React.FC<Props> = ({ setCurrentComp }) => {
-  const fetcher = async (collectionName: string) => {
-    return await getDocs(collection(db, collectionName));
-  };
+  user: User;
+}) => {
+  /* animalsサブコレクションを取得 */
   const {
     data: querySnapshot,
     isLoading,
     error,
-  } = useSWRImmutable("animals", fetcher);
+  } = useSWR("animals", async (subCollection: string) => {
+    return await getDocs(collection(db, "users", user.uid, subCollection));
+  });
 
-  console.log(querySnapshot);
-  //   console.log(typeof querySnapshot)
-  //   querySnapshot?.forEach((item) => {
-  //     console.log(item.data());
-  //   });
-
-  const colId = "col-span-4";
-  const colNickname = "col-span-4";
-  const colSex = "col-span-2";
+  // console.log(querySnapshot);
 
   return (
     <>
@@ -34,9 +30,9 @@ export const ListAnimal: React.FC<Props> = ({ setCurrentComp }) => {
         <div className="flex flex-col gap-y-1">
           {/* 行ヘッダー */}
           <div className="grid grid-cols-12 gap-x-2 px-2 text-sm font-medium">
-            <div className={colId}>ID</div>
-            <div className={colNickname}>ニックネーム</div>
-            <div className={colSex}>性別</div>
+            <div className="col-span-4">ID</div>
+            <div className="col-span-4">ニックネーム</div>
+            <div className="col-span-2">性別</div>
           </div>
           {/* 各アイテム */}
           {querySnapshot.docs.map((doc) => {
@@ -46,13 +42,13 @@ export const ListAnimal: React.FC<Props> = ({ setCurrentComp }) => {
                 key={doc.id}
                 className="grid grid-cols-12 gap-x-2 border px-2 py-4"
               >
-                <div className={colId}>
+                <div className="col-span-4">
                   <button onClick={() => setCurrentComp("single")}>
                     {data.id}
                   </button>
                 </div>
-                <div className={colNickname}>{data.nickname}</div>
-                <div className={colSex}>{data.sex}</div>
+                <div className="col-span-4">{data.nickname}</div>
+                <div className="col-span-2">{data.sex}</div>
               </div>
             );
           })}
