@@ -1,0 +1,180 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //==================== ユーザー ====================//
+
+    match /users/{userId} {
+      function isUserAuthenticated() {
+        return request.auth != null;
+      }
+      function isUserHimself() {
+        return request.auth.uid == userId;
+      }
+
+      //***** 単一ユーザー取得 *****//
+      allow get: if 
+        isUserAuthenticated() &&
+        isUserHimself();
+
+      //***** ユーザー追加 *****//
+      allow create: if 
+        isUserAuthenticated() &&
+        isUserHimself() &&
+        request.resource.data.keys().hasOnly([
+          "email", 
+          "createdAt"
+        ]) &&
+        // email
+        request.resource.data.email == request.auth.token.email &&
+         // createdAt
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.createdAt == request.time;
+      
+
+      //==================== 動物 ====================//
+      match /animals/{animalId} {
+        function isValidFieldsForCreate(fields) {
+          // フィールドを完全一致にする
+          let keys = request.resource.data.keys();
+          return 
+            keys.hasAll(fields) && // 必須
+            keys.hasOnly(fields); // 許可
+        }
+
+        // function isValidFieldsForUpdate(must, allowed, notAllowed) {
+        //   let keys = request.resource.data.keys();
+        //   return 
+        //     keys.hasAll(must) && // 必須
+        //     keys.hasOnly(allowed) &&  // 許可
+        //     !keys.hasAny(notAllowed); // 禁止
+        // }
+
+        function isValidAnimalId() {
+          return request.resource.data.id == animalId;
+        }
+
+        function isValidName() {
+          let name = request.resource.data.name;
+          return 
+            name is string &&
+            name.size() > 0 && // 入力必須
+            name.size() <= 30; // 30文字以内
+        }
+
+        function isValidSex() {
+          let sex = request.resource.data.sex; 
+          return 
+            sex in ["", "male", "female"];
+        }
+
+        function isValidParents() {
+          let parents = request.resource.data.parents;
+          return 
+            parents is list && // 配列
+            parents.size() <= 2; // 2個体まで
+        }
+
+        function isValidChildren() {
+          let children = request.resource.data.children;
+          return 
+            children is list && // 配列
+            children.size() <= 30; // 30個体まで
+        }
+
+        function isValidNote() {
+          let note = request.resource.data.note;
+          return 
+            note is string &&
+            note.size() <= 500; // 500文字以内
+        }
+
+        function isValidOwnerId() {
+          let ownerId = request.resource.data.ownerId;
+          return 
+            ownerId is string &&
+            ownerId == userId; // 現時点では自分のidのみ許可
+        }
+
+        function isValidVisibility() {
+          return request.resource.data.visibility == "private";
+        }
+
+        function isValidCreatedAt() {
+          let createdAt = request.resource.data.createdAt;
+          return 
+            createdAt is string &&
+            createdAt.size() > 0 && // 入力必須
+            createdAt.size() <= 100; // 100文字以内
+        }
+
+        function isValidUpdatedAt() {
+          let updatedAt = request.resource.data.updatedAt;
+          return 
+            updatedAt is string &&
+            updatedAt.size() > 0 && // 入力必須
+            updatedAt.size() <= 100; // 100文字以内
+        }
+
+        //***** 単一動物取得 *****//
+        allow get: if 
+          isUserAuthenticated() && 
+          isUserHimself();
+      
+        //***** 複数動物取得 *****//
+        allow list: if 
+          isUserAuthenticated() &&
+          isUserHimself();
+
+        //***** 動物追加 *****//
+        allow create, update: if 
+          isUserAuthenticated() &&
+          isUserHimself() &&
+          isValidFieldsForCreate([
+            "id",
+            "name", 
+            "sex", 
+            "parents", 
+            "children",
+            "note", 
+            "ownerId", 
+            "visibility", 
+            "createdAt", 
+            "updatedAt"
+          ]) &&
+          isValidAnimalId() &&
+          isValidName() &&
+          isValidSex() &&
+          isValidParents() &&
+          isValidChildren() &&
+          isValidNote() &&
+          isValidOwnerId() &&
+          isValidVisibility() &&
+          isValidCreatedAt() &&
+          isValidUpdatedAt();
+
+        //***** 動物更新 *****//
+        // allow update: if 
+        //   isUserAuthenticated() &&
+        //   isUserHimself() &&
+        //   isValidFieldsForUpdate(
+        //     ["updatedAt"],
+        //     ["updatedAt", "name", "sex", "parents", "children", "note"],
+        //     ["id", "ownerId", "visibility", "createdAt"]
+        //   ) &&
+        //   isValidName() &&
+        //   isValidSex() &&
+        //   isValidParents() &&
+        //   isValidChildren() &&
+        //   isValidNote() &&
+        //   isValidUpdatedAt();
+
+        //***** 動物削除 *****//
+        allow delete: if 
+          isUserAuthenticated() &&
+          isUserHimself();
+      }
+    }
+  }
+}

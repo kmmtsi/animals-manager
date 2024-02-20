@@ -2,30 +2,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Sign } from "./Sign";
 
-// Arrange
-// beforeEach(() => {
-//   // render(<Sign />);
-// });
-
-/* メモ */
-// --- vitest ---
-// describe()
-// test()
-// expect()
-
-// --- @testing-library/react ---
-// render()
-
-// --- @testing-library/dom ---
-// getByRole()
-// screen (react?)
-
-// --- @testing-library/jest-dom ---
-// toBeInTheDocument()
-
-// --- @testing-library/user-event ---
-// userEvent
-
 test("初期表示はログイン画面である", () => {
   render(<Sign />);
   expect(screen.getByRole("heading", { name: "ログイン" })).toBeInTheDocument();

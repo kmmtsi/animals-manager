@@ -1,9 +1,9 @@
 import { PageTitle } from "./generalUI/PageTitle";
 import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { Btn } from "./elements/Btn";
+import { Btn } from "./generalUI/btn/Btn";
 
-export const Account: React.FC = () => {
+export const Account = () => {
   // const fetcher = async () => {
 
   // }

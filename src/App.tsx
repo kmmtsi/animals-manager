@@ -1,17 +1,11 @@
-import { Container } from "./components/generalUI/Container";
 import { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./utils/firebase";
-import { User } from "firebase/auth";
+import { User, onAuthStateChanged } from "firebase/auth";
 import { Sign } from "./components/sign/common/Sign";
-import { Authenticated } from "./components/Authenticated";
-
-export type createUserErr = string | null;
+import { AuthenticatedView } from "./components/authenticatedView/AuthenticatedView";
+import { LoadingIndicator } from "./components/generalUI/LoadingIndicator";
 
 export const App = () => {
-  /* Authenticationの確認 */
-  // undefined: 初期値
-  // null: 非認証
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
@@ -26,24 +20,17 @@ export const App = () => {
     });
     return () => {
       unsubscribe();
-      console.log("Unsubscribe");
     };
   }, []);
 
   return (
-    <>
-      {user === undefined && (
-        // ユーザー検証中
-        <div></div>
-      )}
-      {user === null && (
-        // ユーザー未ログイン
-        <Sign />
-      )}
-      {user && (
-        // ユーザーログイン時
-        <Authenticated user={user} />
-      )}
-    </>
+    <div className="break-words text-slate-900">
+      {/* ユーザー検証中 */}
+      {user === undefined && <LoadingIndicator />}
+      {/* ユーザー未ログイン */}
+      {user === null && <Sign />}
+      {/* ユーザーログイン */}
+      {user && <AuthenticatedView user={user} />}
+    </div>
   );
 };
