@@ -4,17 +4,16 @@ import {
   faArrowDown,
   faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { hover } from "../../utils/css";
 import { Dispatch } from "react";
 
 export const Th = ({
-  name,
   sortTarget,
   setSortMethod,
   className = "",
+  children,
 }: {
-  name: string;
   sortTarget?: "name" | "createdAt" | "updatedAt";
   setSortMethod?: Dispatch<
     React.SetStateAction<{
@@ -23,6 +22,7 @@ export const Th = ({
     }>
   >;
   className?: string;
+  children?: ReactNode;
 }) => {
   const commonCss = "font-normal text-slate-600 border bg-slate-50";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -37,7 +37,7 @@ export const Th = ({
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`text-start p-2 w-full flex items-center justify-between ${hover}`}
           >
-            {name}
+            {children}
             <FontAwesomeIcon icon={faEllipsis} />
           </button>
           {isMenuOpen && (
@@ -76,7 +76,11 @@ export const Th = ({
           )}
         </th>
       ) : (
-        <th className={`p-2 cursor-default text-start ${commonCss} ${className}`}>{name}</th>
+        <th
+          className={`p-2 cursor-default text-start ${commonCss} ${className}`}
+        >
+          {children}
+        </th>
       )}
     </>
   );

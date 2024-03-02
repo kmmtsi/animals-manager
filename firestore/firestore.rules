@@ -9,6 +9,7 @@ service cloud.firestore {
       function isUserAuthenticated() {
         return request.auth != null;
       }
+
       function isUserHimself() {
         return request.auth.uid == userId;
       }
@@ -35,6 +36,45 @@ service cloud.firestore {
 
       //==================== 動物 ====================//
       match /animals/{animalId} {
+
+        function isValidCreate() {
+          let fields = [
+            "id",
+            "name", 
+            "sex", 
+            "parents", 
+            "children",
+            "note", 
+            "ownerId", 
+            "visibility", 
+            "createdAt",
+            "createdBy", 
+            "updatedAt",
+            "updatedBy"
+          ];
+          let maxId = 100;
+          let maxAnimalName = 30;
+          let maxParents = 2;
+          let maxChildren = 30;
+          let maxNote = 500;
+          let maxTimestamp = 30;
+
+          return 
+            isValidFieldsForCreate(fields) &&
+            isValidAnimalId() &&
+            isValidName(maxAnimalName) &&
+            isValidSex() &&
+            isValidFamily("parents", maxParents) &&
+            isValidFamily("children", maxChildren) &&
+            isValidNote(maxNote) &&
+            isValidOwnerId() &&
+            isValidVisibility() &&
+            isValidTimestamp("createdAt", maxTimestamp) &&
+            isValidTimestamp("updatedAt", maxTimestamp) &&
+            isValidModifier("createdBy", maxId) &&
+            isValidModifier("updatedBy", maxId);
+        }
+
         function isValidFieldsForCreate(fields) {
           // フィールドを完全一致にする
           let keys = request.resource.data.keys();
@@ -43,51 +83,36 @@ service cloud.firestore {
             keys.hasOnly(fields); // 許可
         }
 
-        // function isValidFieldsForUpdate(must, allowed, notAllowed) {
-        //   let keys = request.resource.data.keys();
-        //   return 
-        //     keys.hasAll(must) && // 必須
-        //     keys.hasOnly(allowed) &&  // 許可
-        //     !keys.hasAny(notAllowed); // 禁止
-        // }
-
         function isValidAnimalId() {
           return request.resource.data.id == animalId;
         }
 
-        function isValidName() {
+        function isValidName(maxAnimalName) {
           let name = request.resource.data.name;
           return 
             name is string &&
-            name.size() > 0 && // 入力必須
-            name.size() <= 30; // 30文字以内
+            name.size() >= 1 && // 必須
+            name.size() <= maxAnimalName;
         }
 
         function isValidSex() {
-          let sex = request.resource.data.sex; 
+          let sex = request.resource.data.sex;
           return 
             sex in ["", "male", "female"];
         }
 
-        function isValidParents() {
-          let parents = request.resource.data.parents;
+        function isValidFamily(type, maxFamily) {
+          let family = request.resource.data[type];
           return 
-            parents is list && // 配列
-            parents.size() <= 2; // 2個体まで
+            family is list && // 配列
+            family.size() <= maxFamily;
         }
 
-        function isValidChildren() {
-          let children = request.resource.data.children;
-          return 
-            children is list && // 配列
-            children.size() <= 30; // 30個体まで
-        }
-
-        function isValidNote() {
+        function isValidNote(maxNote) {
           let note = request.resource.data.note;
           return 
             note is string &&
-            note.size() <= 500; // 500文字以内
+            note.size() <= maxNote; // 500文字以内
         }
 
         function isValidOwnerId() {
@@ -101,20 +126,20 @@ service cloud.firestore {
           return request.resource.data.visibility == "private";
         }
 
-        function isValidCreatedAt() {
-          let createdAt = request.resource.data.createdAt;
+        function isValidTimestamp(type, maxTimestamp) {
+          let ts = request.resource.data[type];
           return 
-            createdAt is string &&
-            createdAt.size() > 0 && // 入力必須
-            createdAt.size() <= 100; // 100文字以内
+            ts is string &&
+            ts.size() >= 1 && // 必須
+            ts.size() <= maxTimestamp;
         }
 
-        function isValidUpdatedAt() {
-          let updatedAt = request.resource.data.updatedAt;
+        function isValidModifier(type, maxId) {
+          let modifier = request.resource.data[type];
           return 
-            updatedAt is string &&
-            updatedAt.size() > 0 && // 入力必須
-            updatedAt.size() <= 100; // 100文字以内
+            modifier is string &&
+            modifier.size() <= maxId && 
+            modifier == userId; // 現時点では自分のidのみ許可
         }
 
         //***** 単一動物取得 *****//
@@ -131,44 +156,7 @@ service cloud.firestore {
         allow create, update: if 
           isUserAuthenticated() &&
           isUserHimself() &&
-          isValidFieldsForCreate([
-            "id",
-            "name", 
-            "sex", 
-            "parents", 
-            "children",
-            "note", 
-            "ownerId", 
-            "visibility", 
-            "createdAt", 
-            "updatedAt"
-          ]) &&
-          isValidAnimalId() &&
-          isValidName() &&
-          isValidSex() &&
-          isValidParents() &&
-          isValidChildren() &&
-          isValidNote() &&
-          isValidOwnerId() &&
-          isValidVisibility() &&
-          isValidCreatedAt() &&
-          isValidUpdatedAt();
-
-        //***** 動物更新 *****//
-        // allow update: if 
-        //   isUserAuthenticated() &&
-        //   isUserHimself() &&
-        //   isValidFieldsForUpdate(
-        //     ["updatedAt"],
-        //     ["updatedAt", "name", "sex", "parents", "children", "note"],
-        //     ["id", "ownerId", "visibility", "createdAt"]
-        //   ) &&
-        //   isValidName() &&
-        //   isValidSex() &&
-        //   isValidParents() &&
-        //   isValidChildren() &&
-        //   isValidNote() &&
-        //   isValidUpdatedAt();
+          isValidCreate();
 
         //***** 動物削除 *****//
         allow delete: if 

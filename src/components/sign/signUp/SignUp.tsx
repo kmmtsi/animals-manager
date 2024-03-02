@@ -3,13 +3,13 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../../utils/firebase";
 import { auth } from "../../../utils/firebase";
 import { useState } from "react";
-import { Btn } from "../../generalUI/btn/Btn";
-import { EmailInput } from "../../generalUI/form/sign/EmailInput";
-import { PasswordInput } from "../../generalUI/form/sign/PasswordInput";
+import { EmailInput } from "../EmailInput";
+import { PasswordInput } from "../PasswordInput";
 import { User } from "firebase/auth";
 import { Form } from "../../generalUI/form/Form";
 import { AuthError } from "firebase/auth";
 import { MsgOnSignUp } from "./MsgOnSignUp";
+import { btn, btnBlue } from "../../../utils/css";
 
 export const SignUp = () => {
   const [signUpStatus, setSignUpStatus] = useState<
@@ -57,7 +57,9 @@ export const SignUp = () => {
       <Form operation={createUser}>
         <EmailInput />
         <PasswordInput autoComplete="new-password" />
-        <Btn type="submit">新規登録</Btn>
+        <button type="submit" className={`${btn} ${btnBlue}`}>
+          新規登録
+        </button>
       </Form>
     </>
   );

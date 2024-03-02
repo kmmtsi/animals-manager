@@ -2,7 +2,7 @@ import { FormField } from "../../generalUI/form/FormField";
 import { Label } from "../../generalUI/form/Label";
 import { Textarea } from "../../generalUI/form/Textarea";
 import { TextLengthIndicator } from "../../generalUI/form/TextLengthIndicator";
-import { maxLengthForNote } from "../../../utils/animal/definitions";
+import { maxNote } from "../../../utils/animal/definitions";
 import { Dispatch, SetStateAction } from "react";
 
 export const NoteFormField = ({
@@ -19,14 +19,11 @@ export const NoteFormField = ({
         id="note"
         placeholder="この動物についてメモしておきたいことを自由に記入しましょう"
         rows={8}
-        maxLength={maxLengthForNote}
+        maxLength={maxNote}
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      <TextLengthIndicator
-        currentLength={value.length}
-        maxLength={maxLengthForNote}
-      />
+      <TextLengthIndicator currentLength={value.length} maxLength={maxNote} />
     </FormField>
   );
 };

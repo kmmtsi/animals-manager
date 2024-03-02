@@ -1,5 +1,5 @@
 import { AuthError } from "firebase/auth";
-import { Alert } from "../../generalUI/Alert";
+import { Msg } from "../../generalUI/Msg";
 import { LoadingIndicator } from "../../generalUI/LoadingIndicator";
 
 export const MsgOnSignUp = ({
@@ -33,7 +33,7 @@ export const MsgOnSignUp = ({
   return (
     <>
       {status === null && <LoadingIndicator />}
-      {errMsg && <Alert role="err">{errMsg}</Alert>}
+      {errMsg && <Msg role="err">{errMsg}</Msg>}
     </>
   );
 };

@@ -73,7 +73,7 @@ export const Body = ({ user }: { user: User }) => {
         </nav>
       </div>
       {/* メインエリア */}
-      <main className="col-span-12 lg:col-span-10 px-4 py-4">
+      <main className="col-span-12 lg:col-span-10 px-4 pt-4 pb-20">
         <Outlet context={user} />
       </main>
     </Container>

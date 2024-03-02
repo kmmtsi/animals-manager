@@ -1,11 +1,11 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../utils/firebase";
 import { User } from "firebase/auth";
-import { Header } from "./Header";
-import { Alert } from "../generalUI/Alert";
-import { Body } from "./Body";
+import { doc, getDoc } from "firebase/firestore";
 import useSWRImmutable from "swr/immutable";
-import { errMsgs } from "../../utils/errorMessages";
+import { db } from "../../utils/firebase";
+import { Msg } from "../generalUI/Msg";
+import { Body } from "./Body";
+import { Footer } from "./Footer";
+import { Header } from "./Header";
 
 export const AuthenticatedView = ({ user }: { user: User }) => {
   // users collectionから当該userのdocumentを取得
@@ -24,12 +24,13 @@ export const AuthenticatedView = ({ user }: { user: User }) => {
             <div>
               <Header />
               <Body user={user} />
+              <Footer />
             </div>
           ) : (
             // userのdocument取得できない場合
             // users collectionへのuser追加エラー発生時
             // この場合コンテンツは一切表示しない
-            <Alert role="err">{errMsgs.userNotCreated}</Alert>
+            <Msg role="err">不明なエラーが発生しました</Msg>
           )}
         </>
       )}

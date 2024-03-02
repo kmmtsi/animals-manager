@@ -1,126 +1,173 @@
-import { Animal, BaseAnimal, Sex } from "./definitions";
+import { Animal, MiniAnimal, Sex, sexMapping } from "./definitions";
 import { KeyedMutator } from "swr";
-import { OperationToFamily } from "./write/updateAnimal";
+import { AnimalValidationErr, formatAnimalValidationErr } from "./validators";
+import { FirebaseError } from "firebase/app";
 
 // リストの中からIdを元に動物を探す
-export const getAnimalById = <T extends Animal | BaseAnimal>(
+export const findAnimalById = <T extends Animal | MiniAnimal>(
+  id: string,
+  animals: T[]
+) => animals.find((animal) => animal.id === id);
+
+/**
+ * 動物が見つからない場合エラーを投げる
+ * @param id
+ * @param animals
+ * @returns
+ */
+export const getAnimalById = <T extends Animal | MiniAnimal>(
   id: string,
   animals: T[]
 ) => {
-  // 何も見つからない場合undefinedを返す
-  return animals.find((animal) => animal.id === id);
+  const animal = findAnimalById(id, animals);
+  if (animal) {
+    return animal;
+  } else {
+    throw new Error(`id: ${id}をもつ動物が見つかりません`);
+  }
 };
 
 // リストの中からnameを元に動物を探す
-export const getAnimalByName = (
+export const findAnimalByName = <T extends Animal | MiniAnimal>(
   name: string,
-  animals: Animal[] | BaseAnimal[]
-) => {
-  // 何も見つからない場合undefinedを返す
-  return animals.find((animal) => animal.name === name);
-};
+  animals: T[]
+) => animals.find((animal) => animal.name === name);
 
-// 追加されたfamily memberが新規か既存かを判定
-export const isNewAnimal = (
-  animal: Animal | BaseAnimal,
-  animals: Animal[] | BaseAnimal[]
+/**
+ * 最新の暫定全動物リストを取得
+ * @param currentAllAnimals
+ * @param modifiedAnimal
+ * @returns
+ */
+export const modifyLatestAllAnimals = (
+  operation: "created" | "updated" | "deleted",
+  animal: Animal,
+  latestAllAnimals: Animal[]
 ) => {
-  return getAnimalById(animal.id, animals) ? false : true;
+  switch (operation) {
+    case "created":
+      latestAllAnimals.push(animal);
+      break;
+    case "updated":
+      {
+        const index = latestAllAnimals.findIndex(
+          (latestAnimal) => latestAnimal.id === animal.id
+        );
+        latestAllAnimals[index] = animal;
+      }
+      break;
+    case "deleted":
+      {
+        const index = latestAllAnimals.findIndex(
+          (latestAnimal) => latestAnimal.id === animal.id
+        );
+        latestAllAnimals.splice(index, 1);
+      }
+      break;
+  }
 };
-
-// animalsからbaseAnimalsを作成
-export const getBaseAnimals = (animals: Animal[]): BaseAnimal[] =>
-  animals.map((animal) => ({
-    id: animal.id,
-    name: animal.name,
-    sex: animal.sex,
-  }));
 
 // 書き込み完了後にanimalsを更新
 export const mutateAnimals = (
   mutate: KeyedMutator<Animal[]>,
-  animals: Animal[],
-  modifiedAnimals: {
-    createdAnimals?: Animal[];
-    updatedAnimals?: Animal[];
-    deletedAnimals?: Animal[];
-  }
+  latestAllAnimals: Animal[]
 ) => {
-  const { createdAnimals, updatedAnimals, deletedAnimals } = modifiedAnimals;
-  // createされたanimalは既存のanimalsに追加
-  const newAnimals = [...animals, ...(createdAnimals || [])];
-
-  // updateされたanimalは既存のanimalと置き換える
-  updatedAnimals?.forEach((updated) => {
-    const index = newAnimals.findIndex((animal) => animal.id === updated.id);
-    newAnimals[index] = updated;
-  });
-
-  // deleteされたanimalは削除
-  deletedAnimals?.forEach((deleted) => {
-    const index = newAnimals.findIndex((animal) => animal.id === deleted.id);
-    // newAnimals[index]から1つ分削除
-    newAnimals.splice(index, 1);
-  });
-
-  mutate(newAnimals, {
+  mutate(latestAllAnimals, {
     revalidate: false, // 再検証を行わない
   });
 };
 
-export const getWriteResultMsgs = (modifiedAnimals?: {
+export const getWriteResultMsgs = (modifiedAnimals: {
   createdAnimals?: Animal[];
   updatedAnimals?: Animal[];
   deletedAnimals?: Animal[];
 }) => {
-  if (modifiedAnimals) {
-    // 引数あり
-    const { createdAnimals, updatedAnimals, deletedAnimals } = modifiedAnimals;
+  const { createdAnimals, updatedAnimals, deletedAnimals } = modifiedAnimals;
 
-    // create
-    const msgsForCreatedAnimals = createdAnimals?.map(
-      (animal) => `${animal.name}をリストに追加しました`
-    );
+  // create
+  const msgsForCreatedAnimals = createdAnimals?.map(
+    (animal) => `${animal.name}をリストに追加しました`
+  );
 
-    // update
-    const msgsForUpdatedAnimals = updatedAnimals?.map(
-      (animal) => `${animal.name}の情報を更新しました`
-    );
+  // update
+  const msgsForUpdatedAnimals = updatedAnimals?.map(
+    (animal) => `${animal.name}の情報を更新しました`
+  );
 
-    // delete
-    const msgsForDeletedAnimals = deletedAnimals?.map(
-      (animal) => `${animal.name}を削除しました`
-    );
+  // delete
+  const msgsForDeletedAnimals = deletedAnimals?.map(
+    (animal) => `${animal.name}を削除しました`
+  );
 
-    return [
-      ...(msgsForCreatedAnimals || []),
-      ...(msgsForUpdatedAnimals || []),
-      ...(msgsForDeletedAnimals || []),
-    ];
-  } else {
-    // 引数なしでエラー時のメッセージを出力
-    return ["データベースへの書き込みに失敗しました"];
-  }
+  return [
+    // 表示順はcreate -> delete -> update
+    ...(msgsForCreatedAnimals || []),
+    ...(msgsForDeletedAnimals || []),
+    ...(msgsForUpdatedAnimals || []),
+  ];
 };
 
 // update用に必要に応じて既存のfamilyとマージなどさせる
 export const getUpdatedFamily = (
-  operation: OperationToFamily,
-  members: BaseAnimal[],
-  prevFamily: BaseAnimal[]
+  operation: "add" | "remove",
+  members: string[],
+  prevFamily: string[]
 ) => {
-  if (operation === "replace") {
-    return members;
-  } else if (operation === "add") {
+  if (operation === "add") {
     return [...prevFamily, ...members];
   } else {
-    return prevFamily.filter(
-      (prevMember) =>
-        // 除外依頼があった「members」の中にidがあればfalse（trueの逆）を返す
-        // filterはtrueを返した要素だけを残すので、除外依頼があった「member」はフィルタリングされ、結果には残らない
-        !members.some((member) => member.id === prevMember.id)
-    );
+    return prevFamily.filter((prevMember) => !members.includes(prevMember));
   }
+};
+
+// 変更されたmemberを取得
+export type ClassifiedMembers = {
+  unchangedMembers: string[]; // 変更されていない動物
+  addedNewMembers: MiniAnimal[]; // 新規動物
+  addedExistingMembers: string[]; // 新たに追加された既存動物
+  removedMembers: string[]; // 新たに除外された動物
+};
+/**
+ * Familyのメンバーを4種類に分類
+ * @param currentMiniFamily
+ * @param prevFamily
+ * @param animals
+ * @returns
+ */
+export const classifyMembers = (
+  currentMiniFamily: MiniAnimal[],
+  prevFamily: string[]
+) => {
+  const classifiedMembers: ClassifiedMembers = {
+    unchangedMembers: [],
+    addedNewMembers: [],
+    addedExistingMembers: [],
+    removedMembers: [],
+  };
+
+  currentMiniFamily.forEach((currentMember) => {
+    if (currentMember.id === "") {
+      // 新規動物
+      classifiedMembers.addedNewMembers.push(currentMember);
+    } else {
+      // 新規動物以外
+      if (prevFamily.includes(currentMember.id)) {
+        // 以前からメンバーとして存在している
+        classifiedMembers.unchangedMembers.push(currentMember.id);
+      } else {
+        // 以前のメンバーとして存在していない
+        // 新たに追加された既存動物
+        classifiedMembers.addedExistingMembers.push(currentMember.id);
+      }
+    }
+  });
+  prevFamily.forEach((prevMember) => {
+    if (!findAnimalById(prevMember, currentMiniFamily)) {
+      // 新たなfamilyに含まれていない -> 除外された
+      classifiedMembers.removedMembers.push(prevMember);
+    }
+  });
+  return classifiedMembers;
 };
 
 // nameが変更されたか
@@ -130,40 +177,30 @@ export const isNameChanged = (name: string, prevName: string) =>
 // sexが変更されたか
 export const isSexChanged = (sex: Sex, prevSex: Sex) => sex !== prevSex;
 
-// 変更されたmemberを取得
-export type ChangedFamily = {
-  addedNewMembers: BaseAnimal[];
-  addedExistingMembers: BaseAnimal[];
-  removedMembers: BaseAnimal[];
-};
-export const getChangedFamily = (
-  currentFamily: BaseAnimal[],
-  prevFamily: BaseAnimal[],
-  animals: BaseAnimal[]
-): ChangedFamily => {
-  const addedNewMembers: BaseAnimal[] = []; // 新規動物
-  const addedExistingMembers: BaseAnimal[] = []; // 新たに追加された既存動物
-  const removedMembers: BaseAnimal[] = []; // 新たに除外された動物
+// familyが変更されたか
+export const isFamilyChanged = (family: string[], prevFamily: string[]) => {
+  let changed = false;
 
-  currentFamily.forEach((member) => {
-    if (isNewAnimal(member, animals)) {
-      // idが空文字列 -> 新規動物
-      addedNewMembers.push(member);
+  // メンバー数が変わっていたら変更あり
+  if (family.length !== prevFamily.length) return true;
+
+  family.some((member) => {
+    if (member === "") {
+      // 新規メンバーが追加された
+      changed = true;
+      return true; // ループ終了
     } else {
-      // 新規動物以外
-      if (!getAnimalById(member.id, prevFamily)) {
-        // 新たに追加された既存動物
-        addedExistingMembers.push(member);
+      if (!prevFamily.find((prevMember) => prevMember === member)) {
+        // 既存メンバーが追加された
+        changed = true;
+        return true; // ループ終了
       }
     }
   });
-  prevFamily.forEach((member) => {
-    if (!getAnimalByName(member.name, currentFamily)) {
-      // 新たなfamilyに含まれていない -> 除外された
-      removedMembers.push(member);
-    }
-  });
-  return { addedNewMembers, addedExistingMembers, removedMembers };
+
+  // 既存メンバーが除外されたパターンは、新旧メンバー数が違えばlengthの比較で検知されるし、同じであれば、メンバーを足したことになるので上記の処理で検知される
+
+  return changed;
 };
 
 // メモが変更されたか
@@ -174,8 +211,8 @@ export const isNoteChanged = (note: string, prevNote: string) =>
 export const getChangedFields = (
   name: string,
   sex: Sex,
-  changedParents: ChangedFamily,
-  changedChildren: ChangedFamily,
+  parents: string[],
+  children: string[],
   note: string,
   prevAnimal: Animal
 ) => {
@@ -188,23 +225,127 @@ export const getChangedFields = (
     changedFields.push("sex");
   }
   // parents
-  if (
-    changedParents.addedNewMembers.length > 0 ||
-    changedParents.addedExistingMembers.length > 0 ||
-    changedParents.removedMembers.length > 0
-  ) {
+  if (isFamilyChanged(parents, prevAnimal.parents)) {
     changedFields.push("parents");
   }
   // children
-  if (
-    changedChildren.addedNewMembers.length > 0 ||
-    changedChildren.addedExistingMembers.length > 0 ||
-    changedChildren.removedMembers.length > 0
-  ) {
+  if (isFamilyChanged(children, prevAnimal.children)) {
     changedFields.push("children");
   }
   if (isNoteChanged(note, prevAnimal.note)) {
     changedFields.push("note");
   }
   return changedFields;
+};
+
+/**
+ * Sexの値を変換
+ * @param sex
+ * @returns
+ */
+export const formatSex = (sex: string): Sex => sexMapping[sex] || "";
+
+/**
+ * animalをMiniAnimalに変換
+ * @param animal
+ * @returns
+ */
+export const convertAnimalToMini = (animal: Animal): MiniAnimal => ({
+  id: animal.id,
+  name: animal.name,
+  sex: animal.sex,
+});
+
+/**
+ * animalsをMiniAnimalsに変換
+ * @param animals
+ * @returns
+ */
+export const convertAnimalsToMinis = (animals: Animal[]): MiniAnimal[] =>
+  animals.map((animal) => convertAnimalToMini(animal));
+
+/**
+ * familyが選択可能な数に達しているかどうか
+ * @param family
+ * @param maxSelect
+ * @returns
+ */
+export const isFamilyFull = (familyLength: number, maxSelect: number) => {
+  return familyLength >= maxSelect;
+};
+
+/**
+ * 呼ばれるべきタイミング
+ * - Dialogが開かれているときのうち、
+ * - inputに入力があった時
+ * - familyが追加または削除された時
+ * @param inputText
+ * @param usedAnimals
+ * @param allAnimals
+ */
+export const getAnimalsToSuggest = (
+  inputText: string,
+  miniAnimalsInUse: MiniAnimal[],
+  allMiniAnimals: MiniAnimal[]
+) => {
+  // 全ての既存の動物のうち、現在使用されていない動物のみを選別
+  // mainAnimalが新規の時は適切なidを持たないが、そもそもallMiniAnimalsに含まれていないので問題ない
+  const suggestableAnimals = allMiniAnimals.filter((candidate) => {
+    const isCandidateInUse = miniAnimalsInUse.some(
+      (miniAnimalInUse) => miniAnimalInUse.id === candidate.id
+    );
+    return !isCandidateInUse;
+  });
+
+  // inputの正規表現で選別
+  const regex = new RegExp(inputText, "i");
+  return suggestableAnimals.filter((animal) => animal.name.match(regex));
+};
+
+// 日付の処理
+// https://qiita.com/__knm__/items/3c7466a19abdf5192d11
+// https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
+// https://developer.mozilla.org/ja/docs/Web/HTML/Element/time
+
+/**
+ * 現在時刻のタイムスタンプを取得
+ * @returns
+ */
+export const getTimestamp = () => new Date().toISOString();
+
+// Dateオブジェクトに変換
+const getDateObj = (timestamp: string) => new Date(timestamp);
+
+/**
+ * timestamp -> サイト表示用データ
+ * @param timestamp
+ * @returns
+ */
+export const getLocalDateString = (timestamp: string) => {
+  const dateObj = getDateObj(timestamp);
+  return dateObj.toLocaleDateString();
+};
+
+/**
+ * DBへの書き込み結果やバリデーション結果の型
+ */
+export type WriteResult = { status: "success" | "err"; msgs: string[] };
+
+/**
+ * DB書き込み時のエラーメッセージを取得
+ * @param err
+ * @returns
+ */
+export const getWriteErrMsgs = (err: unknown) => {
+  // 開発環境時にはエラーをコンソールに出力
+  if (import.meta.env.DEV) console.error(err);
+
+  if (err instanceof AnimalValidationErr) {
+    // AnimalValidationErrからフォーマットされたメッセージを抽出
+    return formatAnimalValidationErr(err);
+  } else if (err instanceof FirebaseError) {
+    return ["データベースへの書き込みでエラーが発生しました"];
+  } else {
+    return ["不明なエラーが発生しました"];
+  }
 };

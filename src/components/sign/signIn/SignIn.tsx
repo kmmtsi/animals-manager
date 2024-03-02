@@ -1,11 +1,11 @@
 import { AuthError, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../utils/firebase";
 import { useState } from "react";
-import { Btn } from "../../generalUI/btn/Btn";
-import { PasswordInput } from "../../generalUI/form/sign/PasswordInput";
-import { EmailInput } from "../../generalUI/form/sign/EmailInput";
+import { PasswordInput } from "../PasswordInput";
+import { EmailInput } from "../EmailInput";
 import { Form } from "../../generalUI/form/Form";
 import { MsgOnSignIn } from "./MsgOnSignIn";
+import { btn, btnBlue } from "../../../utils/css";
 
 export const SignIn = () => {
   const [signInStatus, setSignInStatus] = useState<
@@ -36,7 +36,9 @@ export const SignIn = () => {
       <Form operation={loginUser}>
         <EmailInput />
         <PasswordInput autoComplete="current-password" />
-        <Btn type="submit">ログイン</Btn>
+        <button type="submit" className={`${btn} ${btnBlue}`}>
+          ログイン
+        </button>
       </Form>
     </>
   );

@@ -10,9 +10,9 @@ export const getSortedAnimals = (
       // 名前でソートした配列を返す
       return animals.sort((a, b) => {
         if (order === "asc") {
-          return a.name.localeCompare(b.name);
-        } else {
           return b.name.localeCompare(a.name);
+        } else {
+          return a.name.localeCompare(b.name);
         }
       });
     case "createdAt":

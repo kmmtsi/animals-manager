@@ -1,4 +1,4 @@
-import { faListUl, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faFileImport, faListUl, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 
 export const navItems = [
   {
@@ -10,6 +10,11 @@ export const navItems = [
     path: "create",
     name: "新規追加",
     icon: faPlus,
+  },
+  {
+    path: "import",
+    name: "インポート",
+    icon: faFileImport,
   },
   {
     path: "account",

@@ -1,8 +1,8 @@
+export const minAnimalName = 1;
+export const maxAnimalName = 30;
 export const maxParents = 2;
 export const maxChildren = 30;
-export const minLengthForAnimalName = 1;
-export const maxLengthForAnimalName = 30;
-export const maxLengthForNote = 500;
+export const maxNote = 500;
 
 export const sexOptions = [
   { label: "未入力", value: "" },
@@ -10,38 +10,53 @@ export const sexOptions = [
   { label: "メス", value: "female" },
 ] as const; // 「サバイバルTypeScript > 配列から型を生成する」を参照
 
-const sexValues = sexOptions.map((option) => option.value);
+export const sexValues = sexOptions.map((option) => option.value);
+
+export const sexMapping: Record<string, Sex> = {
+  未入力: "",
+  male: "male",
+  オス: "male",
+  female: "female",
+  メス: "female",
+};
 
 export type Sex = (typeof sexValues)[number];
-export type Visibility = "private"; // publicは後に実装
-export type BaseAnimal = {
+
+export type MiniAnimal = {
   id: string;
   name: string;
   sex: Sex;
 };
-export type Parent = BaseAnimal;
-export type Child = BaseAnimal;
+
+export const familyMapping: Record<string, string> = {
+  parents: "親",
+  children: "子ども",
+};
+
+export type Visibility = "private"; // publicは後に実装
+
 export type Animal = {
   id: string;
   name: string;
   sex: Sex;
-  parents: Parent[];
-  children: Child[];
+  parents: string[]; // idの配列
+  children: string[]; // idの配列
   note: string;
   ownerId: string;
   visibility: Visibility;
   createdAt: string;
+  createdBy: string; // userId
   updatedAt: string;
+  updatedBy: string; // userId
 };
-// export type updatableFields = {
-//   name?: string;
-//   sex?: Sex;
-//   parents?: Parent[];
-//   children?: Child[];
-//   note?: string;
-//   updatedAt: string;
-// };
+export type AnimalKey = keyof Animal;
 
+// mini-: animalのid, name, sexのみを持つもの
+// parentAnimals: 自分が含んでいる親の動物たち
+// parents: 自分から見た親の動物（id）
+
+export const dummyText =
+  "名前,性別,親,子ども,メモ\nB22-6208826,,,,Pattayaからヨハンの元に届いているか確認中（2023/12/25）\nBE17-6129310,Male,,BE23-6113611;BE23-6113612,\nBE18-6227405,Female,,,\nBE21-6167308,Male,,BE23-6113621;BE23-6113622,\nBE21-6167327,Female,,,2023/5/21メールで雌と判明。\nBE21-6167369,Male,,,\nBE22-4208008,Male,,BE23-6113638;BE23-6113769;BE23-6113770,\nBE22-6208788,Female,,,\nBE22-6208800,Prob. male,,,\nBE22-6208801,Female,,,\nBE22-6208806,Female,,BE23-6113637;BE23-6113767;BE23-6113768,from brother Aleksej/daughter caprina\nBE22-6208807,Female,,,\nBE22-6208815,Female,,BE23-6113638;BE23-6113769;BE23-6113770,from int.propere/ daughter Theo\nBE22-6208816,Female,,BE23-6113619;BE23-6113620,\nBE23-6113605,indistinguishable,NL21-1676402;NL21-1193913,,\nBE23-6113606,indistinguishable,NL21-1676402;NL21-1193913,,\nBE23-6113607,indistinguishable,NL21-1700658;BE21-6167373,,\nBE23-6113608,indistinguishable,NL21-1700658;BE21-6167373,,\nBE23-6113609,indistinguishable,NL17-1279476;NL14-1068205,,23_Algarveかも？\nBE23-6113610,indistinguishable,NL17-1279476;NL14-1068205,,\n";
 
 // バリデーション内容
 // ========== field ==========

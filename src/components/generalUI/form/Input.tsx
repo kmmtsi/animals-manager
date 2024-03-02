@@ -11,7 +11,6 @@ export const Input = ({
   maxLength,
   autoFocus,
   value,
-  checked,
   defaultChecked,
   onChange,
   onFocus, // フォーカス時
@@ -20,7 +19,7 @@ export const Input = ({
 }: {
   id: string;
   name?: string | undefined;
-  type?: "text" | "email" | "password" | "checkbox" | "hidden" | "search";
+  type?: "text" | "email" | "password" | "hidden" | "search";
   autoComplete?: "off" | "email" | "new-password" | "current-password";
   placeholder?: string;
   required?: boolean;
@@ -28,7 +27,6 @@ export const Input = ({
   maxLength?: number;
   autoFocus?: boolean;
   value: string | number;
-  checked?: boolean;
   defaultChecked?: boolean;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
@@ -47,7 +45,6 @@ export const Input = ({
       maxLength={maxLength}
       autoFocus={autoFocus}
       value={value}
-      checked={checked}
       defaultChecked={defaultChecked}
       onChange={onChange}
       onFocus={onFocus}

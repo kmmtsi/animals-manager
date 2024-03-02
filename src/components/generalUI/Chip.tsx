@@ -1,7 +1,6 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { MouseEventHandler, ReactNode } from "react";
-import { focus } from "../../utils/css";
+import { ClickableIcon } from "./ClickableIcon";
 
 export const Chip = ({
   children,
@@ -20,13 +19,7 @@ export const Chip = ({
       <div className="cursor-default">{children}</div>
       {onDelete && (
         // onDeleteが与えられた場合閉じるボタンを追加
-        <button
-          type="button"
-          className={`flex items-center justify-center hover:bg-slate-300 rounded-full w-6 aspect-square ${focus}`}
-          onClick={onDelete}
-        >
-          <FontAwesomeIcon icon={faXmark} />
-        </button>
+        <ClickableIcon icon={faXmark} onClick={onDelete} />
       )}
     </div>
   );

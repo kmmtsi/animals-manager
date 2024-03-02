@@ -1,51 +1,33 @@
-import { useState } from "react";
 import { User } from "firebase/auth";
-import { Form } from "../generalUI/form/Form";
-import { NameFormField } from "./formFields/NameFormField";
-import { SexFormField } from "./formFields/SexFormField";
-import { ParentsFormField } from "./formFields/ParentsFormField";
-import { ChildrenFormField } from "./formFields/ChildrenFormField";
-import { NoteFormField } from "./formFields/NoteFormField";
-import { useOutletContext } from "react-router-dom";
-import { Alert } from "../generalUI/Alert";
-import { Btn } from "../generalUI/btn/Btn";
-import { useSWRAnimals } from "../../utils/animal/fetch";
-import { LoadingIndicator } from "../generalUI/LoadingIndicator";
+import { useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { Animal, MiniAnimal, Sex } from "../../utils/animal/definitions";
+import { useFetchAnimals } from "../../utils/animal/fetch";
 import {
-  Animal,
-  Sex,
-  Parent,
-  Child,
-  BaseAnimal,
-} from "../../utils/animal/definitions";
-import { getBaseAnimals, getChangedFamily } from "../../utils/animal/utils";
-import { getChangedFields } from "../../utils/animal/utils";
-import {
-  validateAnimal,
-  ValidationResult,
-} from "../../utils/animal/validate/validateAnimal";
-import {
-  writeAnimals,
   WriteResult,
-} from "../../utils/animal/write/writeAnimals";
+  convertAnimalsToMinis,
+  getAnimalById,
+  getChangedFields,
+  getWriteErrMsgs,
+} from "../../utils/animal/utils";
+import { deleteAnimals } from "../../utils/animal/deleteAnimals";
+import { upsertAnimals } from "../../utils/animal/upsertAnimals";
+import { btn, btnBlue, btnOutlineRed } from "../../utils/css";
+import { LoadingIndicator } from "../generalUI/LoadingIndicator";
+import { Msg } from "../generalUI/Msg";
+import { Form } from "../generalUI/form/Form";
+import { FamilyFormField } from "./formFields/FamilyFormField";
+import { NameFormField } from "./formFields/NameFormField";
+import { NoteFormField } from "./formFields/NoteFormField";
+import { SexFormField } from "./formFields/SexFormField";
 
 // TODO: 未送信で画面遷移時にalert表示
 
 export const AnimalForm = ({
-  // 新規作成時は疑似的にprevAnimalを与える
   // update完了時はprevAnimalが更新されて渡されてくる
-  prevAnimal = {
-    id: "",
-    name: "",
-    sex: "",
-    parents: [],
-    children: [],
-    note: "",
-    ownerId: "",
-    visibility: "private",
-    createdAt: "",
-    updatedAt: "",
-  },
+  // prevAnimalが与えられるとき：update
+  // prevAnimalが与えられないとき：create
+  prevAnimal,
 }: {
   prevAnimal?: Animal;
 }) => {
@@ -58,191 +40,194 @@ export const AnimalForm = ({
     isLoading,
     error: errOnReadAnimals,
     mutate,
-  } = useSWRAnimals(user.uid);
-
-  // createかupdateかを判定
-  const isCreate = prevAnimal.id === "";
+  } = useFetchAnimals(user.uid);
 
   // animalsを配列の形式にする
-  const animals: Animal[] = data || [];
+  const allAnimals: Animal[] = data || [];
 
-  // baseAnimalsを作成
-  const baseAnimals = getBaseAnimals(animals);
+  // allMiniAnimalsを作成
+  const allMiniAnimals = convertAnimalsToMinis(allAnimals);
 
   // 各stateを準備
-  const [name, setName] = useState<string>(prevAnimal.name);
-  const [sex, setSex] = useState<Sex>(prevAnimal.sex);
-  const [parents, setParents] = useState<Parent[]>(prevAnimal.parents);
-  const [children, setChildren] = useState<Child[]>(prevAnimal.children);
-  const [note, setNote] = useState<string>(prevAnimal.note);
-
-  // バリデーション結果
-  const [validationResult, setValidationResult] =
-    useState<ValidationResult>(null);
+  const [name, setName] = useState<string>(prevAnimal?.name || "");
+  const [sex, setSex] = useState<Sex>(prevAnimal?.sex || "");
+  const [miniParentAnimals, setMiniParentAnimals] = useState<MiniAnimal[]>(
+    prevAnimal
+      ? prevAnimal.parents.map((parent) =>
+          getAnimalById(parent, allMiniAnimals)
+        )
+      : []
+  );
+  const [miniChildAnimals, setMiniChildAnimals] = useState<MiniAnimal[]>(
+    prevAnimal
+      ? prevAnimal.children.map((child) => getAnimalById(child, allMiniAnimals))
+      : []
+  );
+  const [note, setNote] = useState<string>(prevAnimal?.note || "");
 
   // 書き込み結果
-  const [writeResult, setWriteResult] = useState<undefined | WriteResult>(
+  const [writeResult, setWriteResult] = useState<WriteResult | undefined>(
     undefined
   );
 
-  // name, parents, childrenに使用されているnameはcomboBoxで使用不可
-  const ngItems: BaseAnimal[] = [
-    { id: "", name: name, sex: "" },
-    ...parents,
-    ...children,
+  // 現在使用されている動物
+  const miniAnimalsInUse: MiniAnimal[] = [
+    {
+      id: prevAnimal?.id || "",
+      name,
+      sex,
+    },
+    ...miniParentAnimals,
+    ...miniChildAnimals,
   ];
 
-  // 以下レンダリングごとに実行されるの改善の余地あり
-  // 変更されたparentsの内容を取得
-  const changedParents = getChangedFamily(
-    parents,
-    prevAnimal.parents,
-    baseAnimals
-  );
+  // 削除後のnavigation用
+  const navigate = useNavigate();
 
-  // 変更されたchildrenの内容を取得
-  const changedChildren = getChangedFamily(
-    children,
-    prevAnimal.children,
-    baseAnimals
-  );
-
-  // 変更されたフィールドを取得
-  const changedFields = getChangedFields(
-    name,
-    sex,
-    changedParents,
-    changedChildren,
-    note,
-    prevAnimal
-  );
-
-  // console.log("prevParents", prevAnimal.parents);
-  // console.log("prevChildren", prevAnimal.children);
-  // console.log("parents", parents);
-  // console.log("chldren", children);
-  // console.log("changedParents", changedParents);
-  // console.log("chagedChildren", changedChildren);
+  // 動物作成成功後のformのリセット
+  const resetFormAfterCreate = (form: HTMLFormElement) => {
+    if (!prevAnimal) {
+      // create時のみ
+      form.reset(); // Uncontrolled comp向け
+      setName("");
+      setSex("");
+      setMiniParentAnimals([]);
+      setMiniChildAnimals([]);
+      setNote("");
+    }
+  };
 
   return (
     <>
       {data && (
         <Form
           operation={async (data, form) => {
-            // バリデーション
-            const res = validateAnimal(
-              name,
-              parents,
-              children,
-              baseAnimals,
-              changedFields
-            );
-
-            if (res) {
-              // バリデーションエラーあり
-              setValidationResult(res);
-            } else {
-              // バリデーションエラーなし -> 書き込み処理
-              const result = await writeAnimals(
+            if (prevAnimal) {
+              // 更新時は変更があるかを確認する
+              const changedFields = getChangedFields(
+                name,
+                sex,
+                miniParentAnimals.map((parent) => parent.id),
+                miniChildAnimals.map((child) => child.id),
+                note,
+                prevAnimal
+              );
+              if (changedFields.length === 0) {
+                setWriteResult({
+                  status: "err",
+                  msgs: ["変更がありません"],
+                });
+                return;
+              }
+            }
+            try {
+              const result = await upsertAnimals(
                 {
                   name: data.name as string,
                   sex: data.sex as Sex,
-                  parents: {
-                    currentParents: parents,
-                    changedParents,
-                  },
-                  children: {
-                    currentChildren: children,
-                    changedChildren,
-                  },
+                  miniParentAnimals,
+                  miniChildAnimals,
                   note: data.note as string,
                 },
-                user,
-                animals,
+                user.uid,
+                allAnimals,
                 mutate,
-                prevAnimal,
-                isCreate
+                prevAnimal
               );
               // DB書き込み結果をセットする
               setWriteResult(result);
-
-              if (result.status === "success") {
-                // 書き込み成功
-                if (isCreate) {
-                  // createのときのみリセット
-                  form.reset(); // Uncontrolled comp向け
-                  setName("");
-                  setSex("");
-                  setParents([]);
-                  setChildren([]);
-                  setNote("");
-                }
-              }
+              // フォームをリセット
+              resetFormAfterCreate(form);
+            } catch (err) {
+              setWriteResult({
+                status: "err",
+                msgs: getWriteErrMsgs(err),
+              });
             }
           }}
         >
           {/* DB書き込み結果 */}
           {writeResult && (
-            <Alert role={writeResult.status}>
+            <Msg role={writeResult.status}>
               {writeResult.msgs.map((msg, i) => (
                 <div key={i} className="py-px">
                   {msg}
                 </div>
               ))}
-            </Alert>
+            </Msg>
           )}
           {/***** 名前 *****/}
           <NameFormField
             value={name}
             setValue={setName}
-            validationErrMsgs={validationResult ? validationResult.name : []}
             // createのときautoFocusあり
-            autoFocus={isCreate}
+            autoFocus={!prevAnimal}
           />
           {/***** 性別 *****/}
           <SexFormField value={sex} setValue={setSex} />
           {/***** 親 *****/}
-          <ParentsFormField
-            selectedItems={parents}
-            setSelectedItems={setParents}
-            originalItems={baseAnimals}
-            ngItems={ngItems}
-            validationErrMsgs={validationResult ? validationResult.parents : []}
+          <FamilyFormField
+            type="parents"
+            miniFamily={miniParentAnimals}
+            setMiniFamily={setMiniParentAnimals}
+            allMiniAnimals={allMiniAnimals}
+            miniAnimalsInUse={miniAnimalsInUse}
           />
           {/***** 子供 *****/}
-          <ChildrenFormField
-            selectedItems={children}
-            setSelectedItems={setChildren}
-            originalItems={baseAnimals}
-            ngItems={ngItems}
-            validationErrMsgs={
-              validationResult ? validationResult.children : []
-            }
+          <FamilyFormField
+            type="children"
+            miniFamily={miniChildAnimals}
+            setMiniFamily={setMiniChildAnimals}
+            allMiniAnimals={allMiniAnimals}
+            miniAnimalsInUse={miniAnimalsInUse}
           />
           {/***** メモ *****/}
           <NoteFormField value={note} setValue={setNote} />
           {/***** 送信ボタン *****/}
-          <Btn
-            type="submit"
-            className="w-fit"
-            onClick={() => {
-              // 前回のDB書き込み結果をリセット
-              setWriteResult(undefined);
-              // 前回のバリデーション結果をリセット
-              setValidationResult(null);
-            }}
-            disabled={
-              // 1つ以上のフィールドが変更済
-              changedFields.length === 0 ? true : false
-            }
-          >
-            {isCreate ? "新規追加" : "更新"}
-          </Btn>
+          <div className="flex gap-x-3">
+            <button
+              type="submit"
+              className={`w-fit ${btn} ${btnBlue}`}
+              onClick={() => {
+                // 前回のDB書き込み結果をリセット
+                setWriteResult(undefined);
+              }}
+            >
+              {prevAnimal ? "更新" : "新規追加"}
+            </button>
+            {/* 削除ボタン */}
+            {prevAnimal && (
+              <button
+                type="button"
+                className={`${btn} ${btnOutlineRed}`}
+                onClick={async () => {
+                  try {
+                    // 削除処理
+                    const result = await deleteAnimals(
+                      [prevAnimal],
+                      user.uid,
+                      allAnimals,
+                      mutate
+                    );
+                    // writeResultの情報を持って動物一覧ページへと遷移
+                    navigate("/", { state: result });
+                  } catch (err) {
+                    setWriteResult({
+                      status: "err",
+                      msgs: getWriteErrMsgs(err),
+                    });
+                  }
+                }}
+              >
+                削除
+              </button>
+            )}
+          </div>
         </Form>
       )}
       {isLoading && <LoadingIndicator />}
       {/* DB読み込みがエラーの場合form自体を表示しない */}
-      {errOnReadAnimals && <Alert role="err">{errOnReadAnimals.message}</Alert>}
+      {errOnReadAnimals && <Msg role="err">{errOnReadAnimals.message}</Msg>}
     </>
   );
 };

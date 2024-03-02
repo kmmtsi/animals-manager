@@ -5,31 +5,39 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AnimalRegisteration } from "./components/animalRegisteration/AnimalRegisteration.tsx";
 import { AnimalsList } from "./components/animalsList/AnimalsList.tsx";
-import { Account } from "./components/Account.tsx";
-import { Animal } from "./components/animal/Animal.tsx";
+import { Account } from "./components/account/Account.tsx";
+import { AnimalPage } from "./components/animalPage/AnimalPage.tsx";
+import { ErrPage } from "./components/generalUI/ErrPage.tsx";
+import { AnimalsImport } from "./components/animalsImport/AnimalsImport.tsx";
 
 const router = createBrowserRouter([
   {
     // Root route
     path: "/",
     element: <App />,
+    errorElement: <ErrPage />,
     children: [
       {
+        // animal削除後のリダイレクト先としているので変更時注意
         index: true,
-        element: <AnimalsList />
+        element: <AnimalsList />,
       },
       {
         path: "create",
-        element: <AnimalRegisteration />
+        element: <AnimalRegisteration />,
+      },
+      {
+        path: "import",
+        element: <AnimalsImport />,
       },
       {
         path: "account",
-        element: <Account />
+        element: <Account />,
       },
       {
         path: ":animalId",
-        element: <Animal />
-      }
+        element: <AnimalPage />,
+      },
     ],
   },
 ]);
