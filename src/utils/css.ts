@@ -1,7 +1,11 @@
 export const common = "break-words text-slate-900 text-sm";
+
+// input関連
 export const focus = "focus:outline focus:outline-2 focus:outline-blue-500/50";
-export const placeHolder = "placeholder:text-sm placeholder:text-slate-400";
+export const placeholder = "placeholder:text-sm placeholder:text-slate-400";
 export const hover = "hover:bg-slate-100";
+export const textInput = `border rounded px-2 py-2 ${focus} ${placeholder}`;
+export const checkBox = "cursor-pointer";
 
 export const msgBlue = "border-blue-100 bg-blue-50 text-blue-500";
 export const msgRed = "border-red-100 bg-red-50 text-red-500";

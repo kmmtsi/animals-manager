@@ -17,12 +17,12 @@ import { ClickableIcon } from "../generalUI/ClickableIcon";
 import { LoadingIndicator } from "../generalUI/LoadingIndicator";
 import { Msg } from "../generalUI/Msg";
 import { PageTitle } from "../generalUI/PageTitle";
-import { Checkbox } from "../generalUI/form/Checkbox";
 import { FamilyTd } from "./FamilyTd";
 import { NameAndSex } from "./NameAndSex";
 import { Td } from "./Td";
 import { Th } from "./Th";
 import { getSortedAnimals } from "./utils";
+import { checkBox } from "../../utils/css";
 
 export const AnimalsList = () => {
   const user = useOutletContext<User>();
@@ -136,7 +136,8 @@ export const AnimalsList = () => {
                 <thead>
                   <tr>
                     <Th className="w-fit">
-                      <Checkbox
+                      <input
+                        type="checkbox"
                         onChange={(e) => {
                           if (e.target.checked) {
                             // チェックされたとき
@@ -146,7 +147,7 @@ export const AnimalsList = () => {
                             setSelectedAnimals([]);
                           }
                         }}
-                        className="size-3.5"
+                        className={`${checkBox} size-3.5`}
                       />
                     </Th>
                     <Th
@@ -183,7 +184,8 @@ export const AnimalsList = () => {
                       <tr key={index}>
                         {/* チェックボックス */}
                         <Td>
-                          <Checkbox
+                          <input
+                            type="checkbox"
                             checked={selectedAnimals.includes(animal)}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -202,7 +204,7 @@ export const AnimalsList = () => {
                                 );
                               }
                             }}
-                            className="size-3.5"
+                            className={`${checkBox} size-3.5`}
                           />
                         </Td>
                         {/* 名前 */}

@@ -1,9 +1,8 @@
 import { useRef, useState, SetStateAction, Dispatch } from "react";
 import { SelectedFamily } from "./SelectedFamily";
-import { Input } from "../../generalUI/form/Input";
 import { getAnimalsToSuggest, isFamilyFull } from "../../../utils/animal/utils";
 import { TextLengthIndicator } from "../../generalUI/form/TextLengthIndicator";
-import { btn, btnBlue, focus, hover } from "../../../utils/css";
+import { btn, btnBlue, focus, hover, textInput } from "../../../utils/css";
 import { Key } from "../../generalUI/Key";
 import {
   MiniAnimal,
@@ -72,8 +71,8 @@ export const FamilyInput = ({
       setMiniFamily((prevFamily) => [...prevFamily, request.member]);
     } else {
       // 未入力の時何もしない
-      if(inputText === "") return;
-      
+      if (inputText === "") return;
+
       // inputと完全一致するsuggestがあったのかを探す
       const suggestedMember = findAnimalByName(
         request.inputText,
@@ -147,13 +146,12 @@ export const FamilyInput = ({
           {/* Input関連 */}
           <div className="grid grid-cols-12 gap-x-2 gap-y-1">
             {/* inputが一番上のときdialog open時のautoFocus適用される */}
-            <Input
+            <input
               // requiredはnot focusableというエラーが出るのでつけない
-              id={type} // parents or children
               value={inputText}
               maxLength={maxAnimalName} // maxLengthで文字数制限
               autoComplete="off"
-              className="col-span-11"
+              className={`${textInput} col-span-11`}
               autoFocus={true}
               placeholder={familyMapping[type]} // 親 or 子ども
               onChange={(e) => {

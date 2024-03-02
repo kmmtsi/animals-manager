@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { auth } from "./utils/firebase";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { Sign } from "./components/sign/common/Sign";
+import { Sign } from "./components/sign/Sign";
 import { AuthenticatedView } from "./components/authenticatedView/AuthenticatedView";
-import { LoadingIndicator } from "./components/generalUI/LoadingIndicator";
 import { common } from "./utils/css";
 
 export const App = () => {
@@ -28,9 +27,9 @@ export const App = () => {
     // 共通CSSをここに記述する
     <div className={common}>
       {/* ユーザー検証中 */}
-      {user === undefined && <LoadingIndicator />}
+      {user === undefined && <div />}
       {/* ユーザー未ログイン */}
-      {user === null && <Sign />}
+      {user === null && <Sign isDefaultSignIn={true} />}
       {/* ユーザーログイン */}
       {user && <AuthenticatedView user={user} />}
     </div>

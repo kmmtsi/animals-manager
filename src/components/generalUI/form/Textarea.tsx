@@ -1,4 +1,4 @@
-import { focus, placeHolder } from "../../../utils/css";
+import { focus, placeholder } from "../../../utils/css";
 
 export const Textarea = ({
   id,
@@ -28,7 +28,7 @@ export const Textarea = ({
       maxLength={maxLength}
       value={value}
       // スタイルはinput, select, textareaで連動させる
-      className={`border rounded px-2 py-2 ${focus} ${placeHolder} ${className}`}
+      className={`border rounded px-2 py-2 ${focus} ${placeholder} ${className}`}
       onChange={onChange}
     />
   );

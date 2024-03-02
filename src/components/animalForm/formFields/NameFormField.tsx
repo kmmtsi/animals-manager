@@ -1,9 +1,9 @@
 import { FormField } from "../../generalUI/form/FormField";
-import { Input } from "../../generalUI/form/Input";
 import { Label } from "../../generalUI/form/Label";
 import { TextLengthIndicator } from "../../generalUI/form/TextLengthIndicator";
 import { maxAnimalName } from "../../../utils/animal/definitions";
 import { Dispatch, SetStateAction } from "react";
+import { textInput } from "../../../utils/css";
 
 export const NameFormField = ({
   value,
@@ -19,14 +19,16 @@ export const NameFormField = ({
       <Label htmlFor="name" required={true}>
         名前
       </Label>
-      <Input
+      <input
         id="name"
+        name="name"
         placeholder="（必須）一意の動物のID、名称、ニックネームなど"
         required={true}
         maxLength={maxAnimalName}
         autoFocus={autoFocus} // 新規作成のときのみautoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        className={textInput}
       />
       <TextLengthIndicator
         currentLength={value.length}

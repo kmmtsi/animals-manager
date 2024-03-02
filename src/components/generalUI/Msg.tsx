@@ -10,9 +10,11 @@ import { ReactNode } from "react";
 export const Msg = ({
   role,
   children,
+  className = "",
 }: {
   role: "success" | "err" | "info";
   children: ReactNode;
+  className?: string;
 }) => {
   let customCls: string;
   let icon;
@@ -39,7 +41,7 @@ export const Msg = ({
   return (
     <div
       role={htmlRole}
-      className={`flex gap-x-4 items-start text-sm p-4 border rounded ${customCls}`}
+      className={`flex gap-x-4 items-start text-sm p-4 border rounded ${customCls} ${className}`}
     >
       <div>
         <FontAwesomeIcon icon={icon} />
