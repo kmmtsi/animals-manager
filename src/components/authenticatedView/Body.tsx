@@ -6,7 +6,7 @@ import { Outlet } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { hover } from "../../utils/css";
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { navItems } from "./utils";
+import { navItems } from "../../utils/pages/utils";
 
 export const Body = ({ user }: { user: User }) => {
   // navが開いているかどうか
