@@ -1,19 +1,17 @@
-import { useState } from "react";
-import { Container } from "../generalUI/Container";
-import { User } from "firebase/auth";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Outlet } from "react-router-dom";
-import { NavLink } from "react-router-dom";
-import { hover } from "../../utils/css";
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { navItems } from "../../utils/pages/utils";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { User } from "firebase/auth";
+import { useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { container, hover } from "../../utils/css";
+import { getPagesForNav } from "../../utils/pages/utils";
 
 export const Body = ({ user }: { user: User }) => {
   // navが開いているかどうか
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
 
   return (
-    <Container className="grid grid-cols-12">
+    <div className={`grid grid-cols-12 ${container}`}>
       {/* sideNav表示切替ボタンラッパー */}
       <div className="col-span-12 lg:hidden flex gap-x-2 py-2 border-b">
         {/* sideNav表示切替ボタン */}
@@ -50,11 +48,11 @@ export const Body = ({ user }: { user: User }) => {
         {/* sideNav */}
         <nav>
           <ul className="flex flex-col gap-y-2">
-            {navItems.map((item, i) => (
+            {getPagesForNav().map((page, i) => (
               // メニューアイテム
               <li key={i}>
                 <NavLink
-                  to={item.path}
+                  to={page.path}
                   onClick={() => {
                     setIsNavOpen(false);
                   }}
@@ -64,8 +62,8 @@ export const Body = ({ user }: { user: User }) => {
                     }`
                   }
                 >
-                  <FontAwesomeIcon icon={item.icon} />
-                  <span>{item.name}</span>
+                  <FontAwesomeIcon icon={page.icon} />
+                  <span>{page.name}</span>
                 </NavLink>
               </li>
             ))}
@@ -76,6 +74,6 @@ export const Body = ({ user }: { user: User }) => {
       <main className="col-span-12 lg:col-span-10 px-4 pt-4 pb-20">
         <Outlet context={user} />
       </main>
-    </Container>
+    </div>
   );
 };

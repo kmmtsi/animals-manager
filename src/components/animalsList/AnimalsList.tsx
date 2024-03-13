@@ -4,45 +4,54 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { User } from "firebase/auth";
 import { useState } from "react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
-import { Animal } from "../../utils/animal/definitions";
-import { useFetchAnimals } from "../../utils/animal/fetch";
+import { SortMethod, convertAnimalsToMinis } from "../../utils/animal/utils";
+import { convertErrToMsgs } from "../../utils/common/utils";
+import { getLocalDateString } from "../../utils/common/utils";
+import { Animal, Pair } from "../../utils/common/definitions";
+import { WriteResult, useFetchDocs } from "../../utils/common/utils";
 import {
-  WriteResult,
-  convertAnimalsToMinis,
-  getLocalDateString,
-  getWriteErrMsgs,
-} from "../../utils/animal/utils";
-import { deleteAnimals } from "../../utils/animal/deleteAnimals";
+  checkBox,
+  msgLikeBtn,
+  pageTitle,
+  table,
+  tableCheckBox,
+} from "../../utils/css";
 import { ClickableIcon } from "../generalUI/ClickableIcon";
 import { LoadingIndicator } from "../generalUI/LoadingIndicator";
 import { Msg } from "../generalUI/Msg";
-import { PageTitle } from "../generalUI/PageTitle";
-import { FamilyTd } from "./FamilyTd";
-import { NameAndSex } from "./NameAndSex";
+import { NameAndSex } from "../generalUI/NameAndSex";
+import { PairTd } from "./FamilyTd";
 import { Td } from "./Td";
 import { Th } from "./Th";
-import { getSortedAnimals } from "./utils";
-import { checkBox } from "../../utils/css";
+import { getSortedAnimals } from "../../utils/animal/utils";
 
 export const AnimalsList = () => {
   const user = useOutletContext<User>();
 
   // animalsを取得
-  const { data: animals, mutate, isLoading, error } = useFetchAnimals(user.uid);
+  const {
+    data: animalsData,
+    mutate: animalsMutator,
+    isLoading: isLoadingAnimals,
+    error: animalsError,
+  } = useFetchDocs<Animal>(user.uid, "animals");
+
+  const {
+    data: pairsData,
+    mutate: pairsMutator,
+    isLoading: isLoadingPairs,
+    error: pairsError,
+  } = useFetchDocs<Pair>(user.uid, "pairs");
 
   // ソートの準備
-  const [sortMethod, setSortMethod] = useState<{
-    target: "name" | "createdAt" | "updatedAt";
-    method: "asc" | "desc";
-  }>({
-    // ソートのデフォルト値
+  const [sortMethod, setSortMethod] = useState<SortMethod>({
     target: "createdAt",
-    method: "desc",
+    order: "desc",
   });
 
   // ソートされたanimalsを取得
-  const sortedAnimals = animals
-    ? getSortedAnimals(animals, sortMethod.target, sortMethod.method)
+  const sortedAnimals = animalsData
+    ? getSortedAnimals(animalsData, sortMethod)
     : [];
 
   // checkboxによる選択状況
@@ -57,12 +66,12 @@ export const AnimalsList = () => {
   );
 
   // miniAnimalsを取得
-  const allMiniAnimals = convertAnimalsToMinis(animals || []);
+  const allMiniAnimals = convertAnimalsToMinis(animalsData || []);
 
   return (
     <div className="grid gap-y-6">
-      <PageTitle tag="h1">動物一覧</PageTitle>
-      {animals && (
+      <h1 className={pageTitle}>動物一覧</h1>
+      {animalsData && pairsData && (
         <div className="grid gap-y-4">
           {writeResult && (
             // 削除結果を表示
@@ -74,7 +83,7 @@ export const AnimalsList = () => {
               ))}
             </Msg>
           )}
-          {animals.length > 0 ? (
+          {animalsData.length > 0 ? (
             // DBから1つ以上のデータ取得済みの場合
             <div className="overflow-x-auto">
               {/* tableのプチメニュー */}
@@ -96,8 +105,8 @@ export const AnimalsList = () => {
                               const result = await deleteAnimals(
                                 selectedAnimals,
                                 user.uid,
-                                animals,
-                                mutate
+                                animalsData,
+                                animalsMutator
                               );
                               setWriteResult(result);
                               // 動物の選択状況をリセット
@@ -105,7 +114,7 @@ export const AnimalsList = () => {
                             } catch (err) {
                               setWriteResult({
                                 status: "err",
-                                msgs: getWriteErrMsgs(err),
+                                msgs: convertErrToMsgs(err),
                               });
                             }
                           }
@@ -125,29 +134,29 @@ export const AnimalsList = () => {
                       : "更新日"}
                   </span>
                   <FontAwesomeIcon
-                    icon={sortMethod.method === "asc" ? faArrowUp : faArrowDown}
+                    icon={sortMethod.order === "asc" ? faArrowUp : faArrowDown}
                     className=""
                   />
                 </div>
               </div>
               {/* テーブル */}
-              <table className="border-collapse text-start w-full">
+              <table className={table}>
                 {/* 行ヘッダー */}
                 <thead>
                   <tr>
-                    <Th className="w-fit">
+                    <Th className="w-9">
                       <input
                         type="checkbox"
                         onChange={(e) => {
                           if (e.target.checked) {
                             // チェックされたとき
-                            setSelectedAnimals(animals);
+                            setSelectedAnimals(animalsData);
                           } else {
                             // チェックが外されたとき
                             setSelectedAnimals([]);
                           }
                         }}
-                        className={`${checkBox} size-3.5`}
+                        className={tableCheckBox}
                       />
                     </Th>
                     <Th
@@ -157,8 +166,7 @@ export const AnimalsList = () => {
                     >
                       名前
                     </Th>
-                    <Th className="min-w-36">親</Th>
-                    <Th className="min-w-36">子ども</Th>
+                    {/* <Th className="min-w-36">親</Th> */}
                     <Th>メモ</Th>
                     <Th
                       sortTarget="createdAt"
@@ -204,23 +212,19 @@ export const AnimalsList = () => {
                                 );
                               }
                             }}
-                            className={`${checkBox} size-3.5`}
+                            className={tableCheckBox}
                           />
                         </Td>
                         {/* 名前 */}
-                        <Td className={`font-medium`}>
+                        <Td>
                           <NameAndSex animal={animal} isLink={true} />
                         </Td>
                         {/* 親 */}
-                        <FamilyTd
-                          family={animal.parents}
-                          allMiniAnimals={allMiniAnimals}
-                        />
-                        {/* 子ども */}
-                        <FamilyTd
-                          family={animal.children}
-                          allMiniAnimals={allMiniAnimals}
-                        />
+                        {/* <PairTd
+                          pairIds={[animal.sourcePair]}
+                          field="pairedAnimals"
+                          allPairs={pairsData}
+                        /> */}
                         {/* メモ */}
                         <Td>{animal.note}</Td>
                         {/* 登録日 */}
@@ -236,20 +240,22 @@ export const AnimalsList = () => {
           ) : (
             <div className="grid gap-y-3">
               <div>動物が登録されていません</div>
-              <Link
-                to="/create"
-                className="px-2 py-4 border border-blue-100 rounded block bg-blue-50 text-blue-500"
-              >
+              <Link to="/create" className={msgLikeBtn}>
                 動物を登録する
               </Link>
             </div>
           )}
         </div>
       )}
-      {isLoading && <LoadingIndicator />}
-      {error && (
+      {(isLoadingAnimals || isLoadingPairs) && <LoadingIndicator />}
+      {animalsError && (
         <div>
-          <Msg role="err">{error.message}</Msg>
+          <Msg role="err">{animalsError.message}</Msg>
+        </div>
+      )}
+      {pairsError && (
+        <div>
+          <Msg role="err">{pairsError.message}</Msg>
         </div>
       )}
     </div>

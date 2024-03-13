@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { formGapY } from "../../../utils/css";
 
 export const Form = ({
   operation,
@@ -15,7 +16,7 @@ export const Form = ({
   return (
     <form
       method="post"
-      className={`grid gap-y-5 ${className}`}
+      className={`${formGapY} ${className}`}
       onSubmit={(e) => {
         e.preventDefault();
         const form = e.target as HTMLFormElement;

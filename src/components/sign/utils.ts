@@ -2,7 +2,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../utils/firebase";
 import { doc, setDoc } from "firebase/firestore";
-import { getTimestamp } from "../../utils/animal/utils";
+import { getTimestamp } from "../../utils/common/utils";
 import { FirebaseError } from "firebase/app";
 
 /**

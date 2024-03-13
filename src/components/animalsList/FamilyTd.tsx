@@ -1,21 +1,27 @@
+import { Pair } from "../../utils/common/definitions";
+import { getPairById } from "../../utils/pair/utils";
+import { NameAndSex } from "../generalUI/NameAndSex";
 import { Td } from "./Td";
-import { NameAndSex } from "./NameAndSex";
-import { getAnimalById } from "../../utils/animal/utils";
-import { MiniAnimal } from "../../utils/animal/definitions";
 
-export const FamilyTd = ({
-  family,
-  allMiniAnimals,
+export const PairTd = ({
+  pairIds,
+  field,
+  allPairs,
 }: {
-  family: string[];
-  allMiniAnimals: MiniAnimal[];
+  pairIds: string[];
+  field: "pairedAnimals" | "children";
+  allPairs: Pair[];
 }) => {
   return (
     <Td>
-      {family.map((member) => {
-        const miniMember = getAnimalById(member, allMiniAnimals);
-        return <NameAndSex key={member} animal={miniMember} isLink={true} />;
-      })}
+      <div>
+        {pairIds.map((pairId) => {
+          const pair = getPairById(pairId, allPairs);
+          return pair[field].map((miniAnimal) => {
+            return <NameAndSex animal={miniAnimal} />;
+          });
+        })}
+      </div>
     </Td>
   );
 };

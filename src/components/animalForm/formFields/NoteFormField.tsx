@@ -1,9 +1,9 @@
-import { FormField } from "../../generalUI/form/FormField";
 import { Label } from "../../generalUI/form/Label";
 import { Textarea } from "../../generalUI/form/Textarea";
 import { TextLengthIndicator } from "../../generalUI/form/TextLengthIndicator";
-import { maxNote } from "../../../utils/animal/definitions";
+import { maxNote } from "../../../utils/common/definitions";
 import { Dispatch, SetStateAction } from "react";
+import { formField } from "../../../utils/css";
 
 export const NoteFormField = ({
   value,
@@ -13,7 +13,7 @@ export const NoteFormField = ({
   setValue: Dispatch<SetStateAction<string>>;
 }) => {
   return (
-    <FormField>
+    <div className={formField}>
       <Label htmlFor="note">メモ</Label>
       <Textarea
         id="note"
@@ -24,6 +24,6 @@ export const NoteFormField = ({
         onChange={(e) => setValue(e.target.value)}
       />
       <TextLengthIndicator currentLength={value.length} maxLength={maxNote} />
-    </FormField>
+    </div>
   );
 };

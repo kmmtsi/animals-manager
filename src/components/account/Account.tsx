@@ -1,18 +1,22 @@
-import { PageTitle } from "../generalUI/PageTitle";
-import { signOut } from "firebase/auth";
+import { User, signOut } from "firebase/auth";
 import { auth } from "../../utils/firebase";
-import { btn, btnBlue } from "../../utils/css";
+import { btn, btnBlue, pageTitle } from "../../utils/css";
+import { useOutletContext } from "react-router-dom";
 
 export const Account = () => {
-  // const fetcher = async () => {
+  const user = useOutletContext<User>();
 
-  // }
+  const menu = "space-y-1";
+  const menuTitle = "text-base";
 
   return (
-    <>
-      <PageTitle tag="h1">アカウント</PageTitle>
-      <div className="grid gap-y-2">
-        <div className="flex flex-col gap-y-2">
+    <div className="space-y-6">
+      <h1 className={pageTitle}>アカウント</h1>
+      <div className="space-y-4">
+        {/* ログアウト */}
+        <div className={menu}>
+          <div className={menuTitle}>ログアウト</div>
+          <div>現在ログイン中のアカウントからログアウトします</div>
           <button
             onClick={async () => {
               try {
@@ -25,14 +29,12 @@ export const Account = () => {
           >
             ログアウト
           </button>
-          <p className="text-sm">
-            現在ログイン中のアカウントからログアウトします
-          </p>
         </div>
-        <div>
-          <h2>メールアドレス</h2>
+        <div className={menu}>
+          <div className={menuTitle}>メールアドレス</div>
+          <div>{user.email}</div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

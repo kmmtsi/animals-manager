@@ -14,6 +14,42 @@ service cloud.firestore {
         return request.auth.uid == userId;
       }
 
+      function isValidUserCreate() {
+        let fields = [
+          "email", 
+          "createdAt"
+        ];
+        let maxTimestamp = 30;
+        
+        return 
+          isUserAuthenticated() &&
+          isUserHimself() &&
+          isValidFieldsForCreate(fields) &&
+          isValidEmail() &&
+          isValidTimestamp("createdAt", maxTimestamp);
+      }
+
+      function isValidFieldsForCreate(fields) {
+        // フィールドを完全一致にする
+        let keys = request.resource.data.keys();
+        return 
+          keys.hasAll(fields) && // 必須
+          keys.hasOnly(fields); // 許可
+      }
+
+      function isValidEmail() {
+        return request.resource.data.email == request.auth.token.email;
+      }
+
+      function isValidTimestamp(type, maxTimestamp) {
+        let ts = request.resource.data[type];
+        return 
+          ts is string &&
+          ts.size() >= 1 && // 必須
+          ts.size() <= maxTimestamp;
+      }
+      
+
       //***** 単一ユーザー取得 *****//
       allow get: if 
         isUserAuthenticated() &&
@@ -21,18 +57,7 @@ service cloud.firestore {
 
       //***** ユーザー追加 *****//
       allow create: if 
-        isUserAuthenticated() &&
-        isUserHimself() &&
-        request.resource.data.keys().hasOnly([
-          "email", 
-          "createdAt"
-        ]) &&
-        // email
-        request.resource.data.email == request.auth.token.email &&
-         // createdAt
-        request.resource.data.createdAt is timestamp &&
-        request.resource.data.createdAt == request.time;
-      
+        isValidUserCreate();
 
       //==================== 動物 ====================//
       match /animals/{animalId} {
@@ -42,8 +67,8 @@ service cloud.firestore {
             "id",
             "name", 
             "sex", 
-            "parents", 
-            "children",
+            "sourcePair", 
+            "selfPairs",
             "note", 
             "ownerId", 
             "visibility", 
@@ -54,8 +79,6 @@ service cloud.firestore {
           ];
           let maxId = 100;
           let maxAnimalName = 30;
-          let maxParents = 2;
-          let maxChildren = 30;
           let maxNote = 500;
           let maxTimestamp = 30;
 
@@ -64,8 +87,8 @@ service cloud.firestore {
             isValidAnimalId() &&
             isValidName(maxAnimalName) &&
             isValidSex() &&
-            isValidFamily("parents", maxParents) &&
-            isValidFamily("children", maxChildren) &&
+            isValidSourcePair(maxId) &&
+            isValidSelfPairs() &&
             isValidNote(maxNote) &&
             isValidOwnerId() &&
             isValidVisibility() &&
@@ -101,11 +124,18 @@ service cloud.firestore {
             sex in ["", "male", "female"];
         }
 
-        function isValidFamily(type, maxFamily) {
-          let family = request.resource.data[type];
+        function isValidSourcePair(maxId) {
+          let sourcePair = request.resource.data.sourcePair;
           return 
-            family is list && // 配列
-            family.size() <= maxFamily;
+            sourcePair is string &&
+            sourcePair.size() <= maxId;
+        }
+
+        function isValidSelfPairs() {
+          let selfPairs = request.resource.data.selfPairs;
+          return 
+            selfPairs is list &&
+            selfPairs.size() <= 20;
         }
 
         function isValidNote(maxNote) {
@@ -160,6 +190,12 @@ service cloud.firestore {
 
         //***** 動物削除 *****//
         allow delete: if 
+          isUserAuthenticated() &&
+          isUserHimself();
+      }
+      // pairs
+      match /pairs/{pairId} {
+        allow read, write : if
           isUserAuthenticated() &&
           isUserHimself();
       }

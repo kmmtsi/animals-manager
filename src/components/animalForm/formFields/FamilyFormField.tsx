@@ -1,8 +1,8 @@
-import { FormField } from "../../generalUI/form/FormField";
 import { Label } from "../../generalUI/form/Label";
-import { MiniAnimal, familyMapping } from "../../../utils/animal/definitions";
+import { MiniAnimal, familyMapping } from "../../../utils/common/definitions";
 import { FamilyInput } from "../comboBox/FamilyInput";
 import { Dispatch, SetStateAction } from "react";
+import { formField } from "../../../utils/css";
 
 export const FamilyFormField = ({
   type,
@@ -20,7 +20,7 @@ export const FamilyFormField = ({
   const familyName = familyMapping[type];
 
   return (
-    <FormField>
+    <div className={formField}>
       <Label htmlFor={type}>{familyName}</Label>
       <FamilyInput
         type={type}
@@ -29,6 +29,6 @@ export const FamilyFormField = ({
         allMiniAnimals={allMiniAnimals}
         miniAnimalsInUse={miniAnimalsInUse}
       />
-    </FormField>
+    </div>
   );
 };

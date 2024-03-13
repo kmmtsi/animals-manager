@@ -1,9 +1,8 @@
-import { FormField } from "../../generalUI/form/FormField";
 import { Label } from "../../generalUI/form/Label";
-import { Select } from "../../generalUI/form/Select";
-import { sexOptions } from "../../../utils/animal/definitions";
-import { Sex } from "../../../utils/animal/definitions";
+import { sexOptions } from "../../../utils/common/definitions";
+import { Sex } from "../../../utils/common/definitions";
 import { Dispatch, SetStateAction } from "react";
+import { formField, select } from "../../../utils/css";
 
 export const SexFormField = ({
   value,
@@ -13,11 +12,13 @@ export const SexFormField = ({
   setValue: Dispatch<SetStateAction<Sex>>;
 }) => {
   return (
-    <FormField>
+    <div className={formField}>
       <Label htmlFor="sex">性別</Label>
-      <Select
+      <select
         id="sex"
+        name="sex"
         value={value}
+        className={select}
         onChange={(e) => {
           setValue(e.target.value as Sex);
         }}
@@ -27,7 +28,7 @@ export const SexFormField = ({
             {option.label}
           </option>
         ))}
-      </Select>
-    </FormField>
+      </select>
+    </div>
   );
 };

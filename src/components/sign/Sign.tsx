@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Logo } from "../generalUI/logo/Logo";
-import { WriteResult } from "../../utils/animal/utils";
+import { WriteResult } from "../../utils/common/utils";
 import { Msg } from "../generalUI/Msg";
 import { Form } from "../generalUI/form/Form";
 import { getFirebaseErrMsg, signInUser, signUpUser } from "./utils";
-import { FormField } from "../generalUI/form/FormField";
 import { Label } from "../generalUI/form/Label";
-import { btn, btnBlue, checkBox, textInput } from "../../utils/css";
+import { btn, btnBlue, checkBox, formField, textInput } from "../../utils/css";
 import { FirebaseError } from "firebase/app";
 
 export const Sign = ({ isDefaultSignIn }: { isDefaultSignIn: boolean }) => {
@@ -54,7 +53,7 @@ export const Sign = ({ isDefaultSignIn }: { isDefaultSignIn: boolean }) => {
           }}
         >
           {/* Email */}
-          <FormField>
+          <div className={formField}>
             <Label htmlFor="email" required={true}>
               Email
             </Label>
@@ -67,9 +66,9 @@ export const Sign = ({ isDefaultSignIn }: { isDefaultSignIn: boolean }) => {
               required={true}
               className={textInput}
             />
-          </FormField>
+          </div>
           {/* Password */}
-          <FormField>
+          <div className={formField}>
             <Label htmlFor="password" required={true}>
               Password
             </Label>
@@ -94,7 +93,7 @@ export const Sign = ({ isDefaultSignIn }: { isDefaultSignIn: boolean }) => {
               />
               <Label htmlFor="showPassword">パスワードを表示する</Label>
             </div>
-          </FormField>
+          </div>
           {/* 送信ボタン */}
           <button type="submit" className={`${btn} ${btnBlue}`}>
             {signText}

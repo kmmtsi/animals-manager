@@ -1,12 +1,12 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowUp,
   faArrowDown,
+  faArrowUp,
   faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
-import { ReactNode, useState } from "react";
-import { hover } from "../../utils/css";
-import { Dispatch } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Dispatch, ReactNode, SetStateAction, useState } from "react";
+import { SortMethod, SortTarget } from "../../utils/animal/utils";
+import { hover, th } from "../../utils/css";
 
 export const Th = ({
   sortTarget,
@@ -14,24 +14,18 @@ export const Th = ({
   className = "",
   children,
 }: {
-  sortTarget?: "name" | "createdAt" | "updatedAt";
-  setSortMethod?: Dispatch<
-    React.SetStateAction<{
-      target: "name" | "createdAt" | "updatedAt";
-      method: "asc" | "desc";
-    }>
-  >;
+  sortTarget?: SortTarget;
+  setSortMethod?: Dispatch<SetStateAction<SortMethod>>;
   className?: string;
   children?: ReactNode;
 }) => {
-  const commonCss = "font-normal text-slate-600 border bg-slate-50";
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   return (
     <>
       {sortTarget && setSortMethod ? (
         // sortに関するpropsが渡された場合
-        <th className={`relative ${commonCss} ${className}`}>
+        <th className={`relative ${th} ${className}`}>
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -54,7 +48,7 @@ export const Th = ({
                   className={`rounded text-start py-1 px-2 w-full ${hover}`}
                   onClick={() => {
                     setIsMenuOpen(false);
-                    setSortMethod({ target: sortTarget, method: "asc" });
+                    setSortMethod({ target: sortTarget, order: "asc" });
                   }}
                 >
                   <FontAwesomeIcon icon={faArrowUp} className="mr-1" />
@@ -65,7 +59,7 @@ export const Th = ({
                   className={`rounded text-start py-1 px-2 w-full ${hover}`}
                   onClick={() => {
                     setIsMenuOpen(false);
-                    setSortMethod({ target: sortTarget, method: "desc" });
+                    setSortMethod({ target: sortTarget, order: "desc" });
                   }}
                 >
                   <FontAwesomeIcon icon={faArrowDown} className="mr-1" />
@@ -77,7 +71,7 @@ export const Th = ({
         </th>
       ) : (
         <th
-          className={`p-2 cursor-default text-start ${commonCss} ${className}`}
+          className={`${th} ${className}`}
         >
           {children}
         </th>

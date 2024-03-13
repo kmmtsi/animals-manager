@@ -1,5 +1,5 @@
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { getLocalDateString } from "../../utils/animal/utils";
+import { getLocalDateString } from "../../utils/common/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export const TimeChip = ({
