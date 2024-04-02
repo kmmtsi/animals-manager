@@ -15,18 +15,18 @@ service cloud.firestore {
       }
 
       function isValidUserCreate() {
-        let fields = [
-          "email", 
-          "createdAt"
-        ];
-        let maxTimestamp = 30;
+        // let fields = [
+        //   "email", 
+        //   "createdAt"
+        // ];
+        // let maxTimestamp = 30;
         
         return 
           isUserAuthenticated() &&
-          isUserHimself() &&
-          isValidFieldsForCreate(fields) &&
-          isValidEmail() &&
-          isValidTimestamp("createdAt", maxTimestamp);
+          isUserHimself();
+        //   isValidFieldsForCreate(fields) &&
+        //   isValidEmail() &&
+        //   isValidTimestamp("createdAt", maxTimestamp);
       }
 
       function isValidFieldsForCreate(fields) {
@@ -67,18 +67,17 @@ service cloud.firestore {
             "id",
             "name", 
             "sex", 
-            "sourcePair", 
-            "selfPairs",
+            "breedingIdAsChild", 
+            "breedingIdsAsParent",
             "note", 
-            "ownerId", 
-            "visibility", 
+            "folderIds",
             "createdAt",
             "createdBy", 
             "updatedAt",
             "updatedBy"
           ];
           let maxId = 100;
-          let maxAnimalName = 30;
+          let maxAnimalName = 50;
           let maxNote = 500;
           let maxTimestamp = 30;
 
@@ -87,11 +86,9 @@ service cloud.firestore {
             isValidAnimalId() &&
             isValidName(maxAnimalName) &&
             isValidSex() &&
-            isValidSourcePair(maxId) &&
-            isValidSelfPairs() &&
+            isValidBreedingAsChild(maxId) &&
+            isValidBreedingsAsParent() &&
             isValidNote(maxNote) &&
-            isValidOwnerId() &&
-            isValidVisibility() &&
             isValidTimestamp("createdAt", maxTimestamp) &&
             isValidTimestamp("updatedAt", maxTimestamp) &&
             isValidModifier("createdBy", maxId) &&
@@ -124,18 +121,18 @@ service cloud.firestore {
             sex in ["", "male", "female"];
         }
 
-        function isValidSourcePair(maxId) {
-          let sourcePair = request.resource.data.sourcePair;
+        function isValidBreedingAsChild(maxId) {
+          let breedingIdAsChild = request.resource.data.breedingIdAsChild;
           return 
-            sourcePair is string &&
-            sourcePair.size() <= maxId;
+            breedingIdAsChild is string &&
+            breedingIdAsChild.size() <= maxId;
         }
 
-        function isValidSelfPairs() {
-          let selfPairs = request.resource.data.selfPairs;
+        function isValidBreedingsAsParent() {
+          let breedingIdsAsParent = request.resource.data.breedingIdsAsParent;
           return 
-            selfPairs is list &&
-            selfPairs.size() <= 20;
+            breedingIdsAsParent is list &&
+            breedingIdsAsParent.size() <= 100;
         }
 
         function isValidNote(maxNote) {
@@ -143,17 +140,6 @@ service cloud.firestore {
           return 
             note is string &&
             note.size() <= maxNote; // 500文字以内
-        }
-
-        function isValidOwnerId() {
-          let ownerId = request.resource.data.ownerId;
-          return 
-            ownerId is string &&
-            ownerId == userId; // 現時点では自分のidのみ許可
-        }
-
-        function isValidVisibility() {
-          return request.resource.data.visibility == "private";
         }
 
         function isValidTimestamp(type, maxTimestamp) {
@@ -193,8 +179,22 @@ service cloud.firestore {
           isUserAuthenticated() &&
           isUserHimself();
       }
-      // pairs
-      match /pairs/{pairId} {
+      // breedings
+      match /breedings/{breedingId} {
+        allow read, write : if
+          isUserAuthenticated() &&
+          isUserHimself();
+      }
+
+      // breedingsFolders
+      match /breedingsFolders/{breedingsFolderId} {
+        allow read, write : if
+          isUserAuthenticated() &&
+          isUserHimself();
+      
+      }
+      // animalsFolders
+      match /animalsFolders/{animalsFolderId} {
         allow read, write : if
           isUserAuthenticated() &&
           isUserHimself();

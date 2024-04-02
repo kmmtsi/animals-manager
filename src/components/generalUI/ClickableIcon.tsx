@@ -1,7 +1,7 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { hover } from "../../utils/css";
-import { MouseEventHandler } from "react";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { MouseEventHandler } from "react";
+import { hover } from "../../utils/css";
 
 export const ClickableIcon = ({
   icon,
@@ -12,7 +12,7 @@ export const ClickableIcon = ({
 }) => (
   <button
     type="button"
-    className={`flex items-center justify-center rounded-full w-6 aspect-square ${hover}`}
+    className={`rounded-full w-7 aspect-square ${hover}`}
     onClick={onClick}
   >
     <FontAwesomeIcon icon={icon} />

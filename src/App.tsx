@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
-import { auth } from "./utils/firebase";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { Sign } from "./components/sign/Sign";
-import { AuthenticatedView } from "./components/authenticatedView/AuthenticatedView";
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { common } from "./utils/css";
+import { auth } from "./utils/firebase";
 
 export const App = () => {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -26,12 +25,7 @@ export const App = () => {
   return (
     // 共通CSSをここに記述する
     <div className={common}>
-      {/* ユーザー検証中 */}
-      {user === undefined && <div />}
-      {/* ユーザー未ログイン */}
-      {user === null && <Sign isDefaultSignIn={true} />}
-      {/* ユーザーログイン */}
-      {user && <AuthenticatedView user={user} />}
+      <Outlet context={user} />
     </div>
   );
 };

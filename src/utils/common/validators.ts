@@ -1,10 +1,15 @@
-import { AnimalKey, PairKey } from "./definitions";
+import { Animal } from "./definitions";
+import { Breeding } from "./definitions";
 
 export class FieldValidationErr extends Error {
   docId;
   // 後々フィールドごとに場所を出し分ける可能性があるのでfieldを持たせる
   field;
-  constructor(docId: string, message: string, field?: AnimalKey | PairKey) {
+  constructor(
+    docId: string,
+    message: string,
+    field?: keyof Animal | keyof Breeding
+  ) {
     super(message);
     this.name = "FieldValidationErr";
     this.docId = docId;

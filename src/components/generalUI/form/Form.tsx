@@ -1,15 +1,17 @@
 import { ReactNode } from "react";
 import { formGapY } from "../../../utils/css";
 
+export type FormOperation = (
+  data: { [k: string]: FormDataEntryValue },
+  form: HTMLFormElement
+) => void;
+
 export const Form = ({
   operation,
   children,
   className = "",
 }: {
-  operation: (
-    data: { [k: string]: FormDataEntryValue },
-    form: HTMLFormElement
-  ) => void;
+  operation: FormOperation;
   children: ReactNode;
   className?: string;
 }) => {
