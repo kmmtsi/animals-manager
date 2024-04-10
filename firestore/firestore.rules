@@ -2,73 +2,136 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function auth() {
+      return request.auth != null;
+    }
 
-    //==================== ユーザー ====================//
+    function user(userDocId) {
+      return request.auth.uid == userDocId;
+    }
 
-    match /users/{userId} {
-      function isUserAuthenticated() {
-        return request.auth != null;
-      }
+    function id(docId) {
+      return request.resource.data.id == docId;
+    }
 
-      function isUserHimself() {
-        return request.auth.uid == userId;
-      }
+    function date(field) {
+      let date = request.resource.data[field];
+      return 
+        date is string &&
+        date.size() <= 100;
+    }
 
-      function isValidUserCreate() {
-        // let fields = [
-        //   "email", 
-        //   "createdAt"
-        // ];
-        // let maxTimestamp = 30;
-        
-        return 
-          isUserAuthenticated() &&
-          isUserHimself();
-        //   isValidFieldsForCreate(fields) &&
-        //   isValidEmail() &&
-        //   isValidTimestamp("createdAt", maxTimestamp);
-      }
+    function note() {
+      let note = request.resource.data.note;
+      return 
+        note is string &&
+        note.size() <= 500;
+    }
 
-      function isValidFieldsForCreate(fields) {
-        // フィールドを完全一致にする
+    function folderIds() {
+      let folderIds = request.resource.data.folderIds;
+      return 
+        folderIds is list &&
+        folderIds.size() <= 100;
+    }
+
+    function timestamp(field) {
+      let ts = request.resource.data[field];
+      return 
+        ts is string &&
+        ts.size() >= 1 &&
+        ts.size() <= 30;
+    }
+
+    function modifier(field) {
+      let modifier = request.resource.data[field];
+      return 
+        modifier is string &&
+        modifier.size() >= 1 &&
+        modifier.size() <= 100; // documentId
+    }
+
+    // folder
+    function folderFields() {
+      let keys = request.resource.data.keys();
+      let fields = [
+        "id",
+        "name",
+        "itemIds",
+        "note",
+        "createdAt",
+        "createdBy",
+        "updatedAt",
+        "updatedBy"
+      ];
+      return 
+        keys.hasAll(fields) &&
+        keys.hasOnly(fields);
+    }
+
+    function folderName() {
+      let name = request.resource.data.name;
+      return 
+        name is string &&
+        name.size() >= 1 &&
+        name.size() <= 50;
+    }
+
+    function itemIds() {
+      let itemIds = request.resource.data.itemIds;
+      return 
+        itemIds is list &&
+        itemIds.size() <= 300;
+    }
+
+
+    //==================== User ====================//
+    match /users/{userDocId} {
+      function userFields() {
         let keys = request.resource.data.keys();
+        let fields = [
+          "id",
+          "email",
+          "createdAt",
+          "updatedAt"
+        ];
         return 
-          keys.hasAll(fields) && // 必須
-          keys.hasOnly(fields); // 許可
+          keys.hasAll(fields) &&
+          keys.hasOnly(fields);
       }
 
-      function isValidEmail() {
+      function email() {
         return request.resource.data.email == request.auth.token.email;
       }
-
-      function isValidTimestamp(type, maxTimestamp) {
-        let ts = request.resource.data[type];
-        return 
-          ts is string &&
-          ts.size() >= 1 && // 必須
-          ts.size() <= maxTimestamp;
-      }
       
+      //***** get User *****//
+      allow get: if // list NG
+        auth() &&
+        user(userDocId);
 
-      //***** 単一ユーザー取得 *****//
-      allow get: if 
-        isUserAuthenticated() &&
-        isUserHimself();
+      //***** create User *****//
+      allow create: if // update NG
+        auth() &&
+        user(userDocId) &&
+        userFields() &&
+        id(userDocId) &&
+        email() &&
+        timestamp("createdAt") &&
+        timestamp("createdAt");
 
-      //***** ユーザー追加 *****//
-      allow create: if 
-        isValidUserCreate();
 
-      //==================== 動物 ====================//
-      match /animals/{animalId} {
-
-        function isValidCreate() {
+      //==================== Animal ====================//
+      match /animals/{animalDocId} {
+        function animalFields() {
+          let keys = request.resource.data.keys();
           let fields = [
             "id",
             "name", 
             "sex", 
             "breedingIdAsChild", 
             "breedingIdsAsParent",
+            "healthCondition",
+            "dateOfBirth",
             "note", 
             "folderIds",
             "createdAt",
@@ -76,128 +139,178 @@ service cloud.firestore {
             "updatedAt",
             "updatedBy"
           ];
-          let maxId = 100;
-          let maxAnimalName = 50;
-          let maxNote = 500;
-          let maxTimestamp = 30;
-
           return 
-            isValidFieldsForCreate(fields) &&
-            isValidAnimalId() &&
-            isValidName(maxAnimalName) &&
-            isValidSex() &&
-            isValidBreedingAsChild(maxId) &&
-            isValidBreedingsAsParent() &&
-            isValidNote(maxNote) &&
-            isValidTimestamp("createdAt", maxTimestamp) &&
-            isValidTimestamp("updatedAt", maxTimestamp) &&
-            isValidModifier("createdBy", maxId) &&
-            isValidModifier("updatedBy", maxId);
+            keys.hasAll(fields) &&
+            keys.hasOnly(fields);
         }
 
-        function isValidFieldsForCreate(fields) {
-          // フィールドを完全一致にする
-          let keys = request.resource.data.keys();
-          return 
-            keys.hasAll(fields) && // 必須
-            keys.hasOnly(fields); // 許可
-        }
-
-        function isValidAnimalId() {
-          return request.resource.data.id == animalId;
-        }
-
-        function isValidName(maxAnimalName) {
+        function name() {
           let name = request.resource.data.name;
           return 
             name is string &&
-            name.size() >= 1 && // 必須
-            name.size() <= maxAnimalName;
+            name.size() >= 1 &&
+            name.size() <= 50;
         }
 
-        function isValidSex() {
+        function sex() {
           let sex = request.resource.data.sex;
           return 
             sex in ["", "male", "female"];
         }
 
-        function isValidBreedingAsChild(maxId) {
+        function breedingIdAsChild() {
           let breedingIdAsChild = request.resource.data.breedingIdAsChild;
           return 
             breedingIdAsChild is string &&
-            breedingIdAsChild.size() <= maxId;
+            breedingIdAsChild.size() <= 100; // documentId
         }
 
-        function isValidBreedingsAsParent() {
+        function breedingIdsAsParent() {
           let breedingIdsAsParent = request.resource.data.breedingIdsAsParent;
           return 
             breedingIdsAsParent is list &&
-            breedingIdsAsParent.size() <= 100;
+            breedingIdsAsParent.size() <= 50;
         }
 
-        function isValidNote(maxNote) {
-          let note = request.resource.data.note;
+        function healthCondition() {
+          let healthCondition = request.resource.data.healthCondition;
           return 
-            note is string &&
-            note.size() <= maxNote; // 500文字以内
+            healthCondition in ["", "healthy", "sick", "injured", "dead"];
         }
 
-        function isValidTimestamp(type, maxTimestamp) {
-          let ts = request.resource.data[type];
-          return 
-            ts is string &&
-            ts.size() >= 1 && // 必須
-            ts.size() <= maxTimestamp;
-        }
+        //***** get, list, delete Animal *****//
+        allow read, delete: if 
+          auth() && 
+          user(userDocId);
 
-        function isValidModifier(type, maxId) {
-          let modifier = request.resource.data[type];
-          return 
-            modifier is string &&
-            modifier.size() <= maxId && 
-            modifier == userId; // 現時点では自分のidのみ許可
-        }
-
-        //***** 単一動物取得 *****//
-        allow get: if 
-          isUserAuthenticated() && 
-          isUserHimself();
-      
-        //***** 複数動物取得 *****//
-        allow list: if 
-          isUserAuthenticated() &&
-          isUserHimself();
-
-        //***** 動物追加 *****//
+        //***** create & update Animal *****//
         allow create, update: if 
-          isUserAuthenticated() &&
-          isUserHimself() &&
-          isValidCreate();
+          auth() &&
+          user(userDocId) &&
+          animalFields() &&
+          id(animalDocId) &&
+          name() &&
+          sex() &&
+          breedingIdAsChild() &&
+          breedingIdsAsParent() &&
+          healthCondition() &&
+          date("dateOfBirth") &&
+          note() &&
+          folderIds() &&
+          timestamp("createdAt") &&
+          timestamp("updatedAt") &&
+          modifier("createdBy") &&
+          modifier("updatedBy");
+      }
 
-        //***** 動物削除 *****//
-        allow delete: if 
-          isUserAuthenticated() &&
-          isUserHimself();
-      }
-      // breedings
-      match /breedings/{breedingId} {
-        allow read, write : if
-          isUserAuthenticated() &&
-          isUserHimself();
+
+      //==================== Breeding ====================//
+      match /breedings/{breedingDocId} {
+        function breedingFields() {
+          let keys = request.resource.data.keys();
+          let fields = [
+            "id",
+            "parents",
+            "children",
+            "status",
+            "startDate",
+            "endDate",
+            "note",
+            "folderIds",
+            "createdAt",
+            "createdBy",
+            "updatedAt",
+            "updatedBy"
+          ];
+          return 
+            keys.hasAll(fields) &&
+            keys.hasOnly(fields);
+        }
+
+        function parents() {
+          let parents = request.resource.data.parents;
+          return 
+            parents is list &&
+            parents.size() <= 2;
+        }
+
+        function children() {
+          let children = request.resource.data.children;
+          return 
+            children is list &&
+            children.size() <= 100;
+        }
+
+        function status() {
+          let status = request.resource.data.status;
+          return 
+            status in ["", "planning", "ongoing", "done"];
+        }
+
+        //***** get, list, delete Breeding *****//
+        allow read, delete: if 
+          auth() &&
+          user(userDocId);
+        
+        //***** create, update Breeding *****//
+        allow create, update: if
+          auth() &&
+          user(userDocId) &&
+          breedingFields() &&
+          id(breedingDocId) &&
+          parents() &&
+          children() &&
+          status() &&
+          date("startDate") &&
+          date("endDate") &&
+          note() &&
+          folderIds() &&
+          timestamp("createdAt") &&
+          timestamp("updatedAt") &&
+          modifier("createdBy") &&
+          modifier("updatedBy");
       }
 
-      // breedingsFolders
-      match /breedingsFolders/{breedingsFolderId} {
-        allow read, write : if
-          isUserAuthenticated() &&
-          isUserHimself();
-      
+
+      //==================== Folder ====================//
+      // breedingsFolder
+      match /breedingsFolders/{breedingsFolderDocId} {
+        allow read, delete: if
+          auth() &&
+          user(userDocId);
+
+        allow create, update: if
+          auth() &&
+          user(userDocId) &&
+          folderFields() &&
+          id(breedingsFolderDocId) &&
+          folderName() &&
+          itemIds() &&
+          note() &&
+          timestamp("createdAt") &&
+          timestamp("updatedAt") &&
+          modifier("createdBy") &&
+          modifier("updatedBy");
       }
-      // animalsFolders
-      match /animalsFolders/{animalsFolderId} {
-        allow read, write : if
-          isUserAuthenticated() &&
-          isUserHimself();
+
+      // animalsFolder
+      match /animalsFolders/{animalsFolderDocId} {
+        allow read, delete: if
+          auth() &&
+          user(userDocId);
+
+        allow create, update: if
+          auth() &&
+          user(userDocId) &&
+          folderFields() &&
+          id(animalsFolderDocId) &&
+          folderName() &&
+          itemIds() &&
+          note() &&
+          timestamp("createdAt") &&
+          timestamp("updatedAt") &&
+          modifier("createdBy") &&
+          modifier("updatedBy");
       }
     }
   }

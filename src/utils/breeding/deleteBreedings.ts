@@ -33,57 +33,64 @@ export const handleDeleteBreedings = async (
 
     // animalを更新
     deletedBr.parents.forEach((parent) => {
-      let prevAnimal = updatedAnimals.find((animal) => animal.id === parent.id);
+      const index = updatedAnimals.findIndex(
+        (animal) => animal.id === parent.id
+      );
 
-      if (prevAnimal) {
-        prevAnimal = updateParentAnimalOnLeavingBreeding(
-          prevAnimal,
-          deletedBr.id,
-          userId
-        );
-      } else {
-        prevAnimal = allAnimals.find(
+      if (index === -1) {
+        const prevAnimal = allAnimals.find(
           (animal) => animal.id === parent.id
         ) as Animal;
         updatedAnimals.push(
           updateParentAnimalOnLeavingBreeding(prevAnimal, deletedBr.id, userId)
         );
+      } else {
+        updatedAnimals[index] = updateParentAnimalOnLeavingBreeding(
+          updatedAnimals[index],
+          deletedBr.id,
+          userId
+        );
       }
     });
 
     deletedBr.children.forEach((child) => {
-      let prevAnimal = updatedAnimals.find((animal) => animal.id === child.id);
+      const index = updatedAnimals.findIndex(
+        (animal) => animal.id === child.id
+      );
 
-      if (prevAnimal) {
-        prevAnimal = updateChildAnimalOnLeavingBreeding(prevAnimal, userId);
-      } else {
-        prevAnimal = allAnimals.find(
+      if (index === -1) {
+        const prevAnimal = allAnimals.find(
           (animal) => animal.id === child.id
         ) as Animal;
         updatedAnimals.push(
           updateChildAnimalOnLeavingBreeding(prevAnimal, userId)
+        );
+      } else {
+        updatedAnimals[index] = updateChildAnimalOnLeavingBreeding(
+          updatedAnimals[index],
+          userId
         );
       }
     });
 
     // folderを更新
     deletedBr.folderIds.forEach((folderId) => {
-      let prevFolder = updatedFolders.find(
-        (updFolder) => updFolder.id === folderId
+      const index = updatedFolders.findIndex(
+        (updatedFolder) => updatedFolder.id === folderId
       );
 
-      if (prevFolder) {
-        prevFolder = updateFolderOnItemDeleted(
-          prevFolder,
-          deletedBr.id,
-          userId
-        );
-      } else {
-        prevFolder = allFolders.find(
+      if (index === -1) {
+        const prevFolder = allFolders.find(
           (folder) => folder.id === folderId
         ) as Folder;
         updatedFolders.push(
           updateFolderOnItemDeleted(prevFolder, deletedBr.id, userId)
+        );
+      } else {
+        updatedFolders[index] = updateFolderOnItemDeleted(
+          updatedFolders[index],
+          deletedBr.id,
+          userId
         );
       }
     });

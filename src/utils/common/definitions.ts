@@ -1,29 +1,46 @@
-import i18n from "../../i18n/config";
-
 /**********
  * Animal *
  **********/
 export const minAnimalName = 1;
 export const maxAnimalName = 50;
 export const maxAnimalNote = 500;
-export const maxBreedingNote = 500;
-// 「サバイバルTypeScript > 配列から型を生成する」を参照
 
 export const sexOptions = [
-  { label: "未選択", value: "" },
-  { label: i18n.t("male"), value: "male" },
-  { label: i18n.t("female"), value: "female" },
+  { label: "notSelected", value: "" },
+  { label: "male", value: "male" },
+  { label: "female", value: "female" },
 ] as const;
-// typescript用
+
 const sexValues = sexOptions.map((option) => option.value);
-export type Sex = (typeof sexValues)[number];
+
+export type SexValue = (typeof sexValues)[number];
+
+export const healthConditionOptions = [
+  { label: "notSelected", value: "" },
+  { label: "healthy", value: "healthy" },
+  { label: "sick", value: "sick" },
+  { label: "injured", value: "injured" },
+  { label: "dead", value: "dead" },
+] as const;
+
+const healthConditionLabels = healthConditionOptions.map(
+  (option) => option.label
+);
+const healthConditionValues = healthConditionOptions.map(
+  (option) => option.value
+);
+
+export type HealthConditionLabel = (typeof healthConditionLabels)[number];
+export type HealthConditionValue = (typeof healthConditionValues)[number];
 
 export type Animal = {
   id: string;
   name: string;
-  sex: Sex;
+  sex: SexValue;
   breedingIdAsChild: string;
   breedingIdsAsParent: string[];
+  healthCondition: HealthConditionValue;
+  dateOfBirth: string;
   note: string;
   folderIds: string[];
   createdAt: string;
@@ -34,13 +51,7 @@ export type Animal = {
 
 export type UserModifiableAnimalData = Omit<
   Animal,
-  | "id"
-  | "owner"
-  | "visibility"
-  | "createdAt"
-  | "createdBy"
-  | "updatedAt"
-  | "updatedBy"
+  "id" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy"
 >;
 
 export type AnimalFormData = Omit<
@@ -53,32 +64,38 @@ export type AnimalUpdateData = Partial<UserModifiableAnimalData>;
 export type MiniAnimal = {
   id: string;
   name: string;
-  sex: Sex;
+  sex: SexValue;
 };
 
 /*************
  * Breeding *
  *************/
 export const maxParents = 2;
-export const maxChildren = 30;
+export const maxChildren = 100;
+export const maxBreedingNote = maxAnimalNote;
+
 // カレンダーのlengthは10か0
 export const statusOptions = [
-  { label: "未選択", value: "" },
-  { label: i18n.t("planning"), value: "planning" },
-  { label: i18n.t("ongoing"), value: "ongoing" },
-  { label: i18n.t("done"), value: "done" },
+  { label: "notSelected", value: "" },
+  { label: "planning", value: "planning" },
+  { label: "ongoing", value: "ongoing" },
+  { label: "done", value: "done" },
 ] as const;
+
+const statusLabels = statusOptions.map((opt) => opt.label);
 const statusValues = statusOptions.map((opt) => opt.value);
-export type Status = (typeof statusValues)[number];
+
+export type StatusLabel = (typeof statusLabels)[number];
+export type StatusValue = (typeof statusValues)[number];
 
 export type Breeding = {
   id: string;
   parents: MiniAnimal[];
   children: MiniAnimal[];
-  status: Status;
-  note: string;
+  status: StatusValue;
   startDate: string;
   endDate: string;
+  note: string;
   folderIds: string[];
   createdAt: string;
   createdBy: string; // userId
@@ -107,7 +124,6 @@ export type MiniBreeding = {
 export type User = {
   id: string;
   email: string;
-  username: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -116,8 +132,7 @@ export type User = {
  * Folder *
  **********/
 export const maxFolderName = 50;
-export const maxFolderNote = 500;
-export const maxAccessUser = 100;
+export const maxFolderNote = maxAnimalNote;
 
 export type Folder = {
   id: string;
@@ -139,25 +154,25 @@ export type FolderFormData = UserModifiableFolderData;
 
 export type FolderUpdateData = Partial<UserModifiableFolderData>;
 
-export type Share = "private" | "invitedUsers" | "public";
+// export type Share = "private" | "invitedUsers" | "public";
 
-export const shareOptions: { label: string; value: Share }[] = [
-  {
-    label: i18n.t("private"),
-    value: "private",
-  },
-  {
-    label: i18n.t("invitedUsers"),
-    value: "invitedUsers",
-  },
-  {
-    label: i18n.t("public"),
-    value: "public",
-  },
-];
+// export const shareOptions: { label: string; value: Share }[] = [
+//   {
+//     label: i18n.t("private"),
+//     value: "private",
+//   },
+//   {
+//     label: i18n.t("invitedUsers"),
+//     value: "invitedUsers",
+//   },
+//   {
+//     label: i18n.t("public"),
+//     value: "public",
+//   },
+// ];
 
-// 未定
-export type InvitedUser = {
-  id: string;
-  email: string;
-};
+// // 未定
+// export type InvitedUser = {
+//   id: string;
+//   email: string;
+// };

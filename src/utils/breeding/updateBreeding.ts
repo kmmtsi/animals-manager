@@ -1,4 +1,5 @@
 import { writeBatch } from "firebase/firestore";
+import { Dispatch, SetStateAction } from "react";
 import { KeyedMutator } from "swr";
 import i18n from "../../i18n/config";
 import { getAnimalById } from "../animal/animalUtils";
@@ -49,6 +50,54 @@ export const updateBreeding = (
   return breeding;
 };
 
+export const updateBreedingOnChildAnimalInfoChanged = (
+  breedingIdAsChild: string,
+  miniAnimal: MiniAnimal,
+  allBreedings: Breeding[],
+  userId: string
+) => {
+  if (breedingIdAsChild === "") {
+    return null;
+  } else {
+    const prevBreeding = allBreedings.find(
+      (breeding) => breeding.id === breedingIdAsChild
+    ) as Breeding;
+
+    return updateBreeding(
+      {
+        children: prevBreeding.children.map((child) =>
+          child.id === miniAnimal.id ? miniAnimal : child
+        ),
+      },
+      userId,
+      prevBreeding
+    );
+  }
+};
+
+export const updateBreedingsOnParentAnimalInfoChanged = (
+  breedingIdsAsParent: string[],
+  miniAnimal: MiniAnimal,
+  allBreedings: Breeding[],
+  userId: string
+) => {
+  return breedingIdsAsParent.map((breedingId) => {
+    const prevBreeding = allBreedings.find(
+      (breeding) => breeding.id === breedingId
+    ) as Breeding;
+
+    return updateBreeding(
+      {
+        parents: prevBreeding.parents.map((parent) =>
+          parent.id === miniAnimal.id ? miniAnimal : parent
+        ),
+      },
+      userId,
+      prevBreeding
+    );
+  });
+};
+
 export const updateBreedingOnChildAnimalDeleted = (
   prevBreeding: Breeding,
   deletedAnimalId: string,
@@ -92,7 +141,7 @@ export const updateBreedingOnAddedToFolder = (
     prevBreeding
   );
 
-export const updateBreedingByRemovingFolder = (
+export const updateBreedingOnLeavingFolder = (
   prevBreeding: Breeding,
   folderId: string,
   userId: string
@@ -105,43 +154,8 @@ export const updateBreedingByRemovingFolder = (
     prevBreeding
   );
 
-export const updateBreedingOnChildAnimalInfoChanged = (
-  prevBreeding: Breeding,
-  miniAnimal: MiniAnimal,
-  userId: string
-) =>
-  updateBreeding(
-    {
-      children: prevBreeding.children.map((child) =>
-        child.id === miniAnimal.id ? miniAnimal : child
-      ),
-    },
-    userId,
-    prevBreeding
-  );
-
-export const updateBreedingOnParentAnimalInfoChanged = (
-  prevBreeding: Breeding,
-  miniAnimal: MiniAnimal,
-  userId: string
-) =>
-  updateBreeding(
-    {
-      parents: prevBreeding.parents.map((parent) =>
-        parent.id === miniAnimal.id ? miniAnimal : parent
-      ),
-    },
-    userId,
-    prevBreeding
-  );
-
-export const handleUpdateBreedingForm = async (
+const checkIfFieldsChanged = (
   data: BreedingFormData,
-  userId: string,
-  allAnimals: Animal[],
-  allBreedings: Breeding[],
-  animalsMutator: KeyedMutator<Animal[]>,
-  breedingsMutator: KeyedMutator<Breeding[]>,
   prevBreeding: Breeding
 ) => {
   if (
@@ -154,80 +168,129 @@ export const handleUpdateBreedingForm = async (
   ) {
     throw new CustomErr(i18n.t("noChangeDetected"));
   }
+};
 
-  const batch = writeBatch(db);
+export const handleUpdateBreedingForm = async (
+  data: BreedingFormData,
+  userId: string,
+  allAnimals: Animal[],
+  allBreedings: Breeding[],
+  prevBreeding: Breeding,
+  options: {
+    mutators?: {
+      animalsMutator: KeyedMutator<Animal[]>;
+      breedingsMutator: KeyedMutator<Breeding[]>;
+    };
+    setters?: {
+      setAllBreedings: Dispatch<SetStateAction<Breeding[]>>;
+      setAllAnimals: Dispatch<SetStateAction<Animal[]>>;
+      setCurrentBreeding: Dispatch<SetStateAction<Breeding>>;
+    };
+  }
+) => {
+  /* フィールドを追加する毎に必ず更新 */
+  checkIfFieldsChanged(data, prevBreeding);
 
-  const copiedAllAnimals = [...allAnimals];
-  const copiedAllBreedings = [...allBreedings];
+  const mutators = options.mutators;
+  const setters = options.setters;
+
+  const batch = mutators && writeBatch(db);
 
   // breedingの処理
-  const breeding = updateBreeding(data, userId, prevBreeding);
-  modifyCopiedDocs("updated", breeding, copiedAllBreedings);
-  batch.set(getRef(userId, "breedings", breeding.id), breeding);
+  const updatedBreeding = updateBreeding(data, userId, prevBreeding);
 
   // animalの処理
-  const commonFunc = (updatedAnimal: Animal) => {
-    modifyCopiedDocs("updated", updatedAnimal, copiedAllAnimals);
-    batch.set(getRef(userId, "animals", updatedAnimal.id), updatedAnimal);
-  };
+  const updatedAnimals: Animal[] = [];
 
   // 新parents
-  breeding.parents.forEach((parent) => {
+  updatedBreeding.parents.forEach((parent) => {
     if (!isMemberIncluded(parent, prevBreeding.parents)) {
       // 新メンバーのみ
-      const prevAnimal = getAnimalById(parent.id, allAnimals);
-      const updatedAnimal = updateParentAnimalOnAddedToBreeding(
-        prevAnimal,
-        breeding.id,
-        userId
+      const prevAnimal = allAnimals.find(
+        (animal) => animal.id === parent.id
+      ) as Animal;
+      updatedAnimals.push(
+        updateParentAnimalOnAddedToBreeding(
+          prevAnimal,
+          updatedBreeding.id,
+          userId
+        )
       );
-      commonFunc(updatedAnimal);
     }
   });
 
   // 旧parents
   prevBreeding.parents.forEach((parent) => {
-    if (!isMemberIncluded(parent, breeding.parents)) {
+    if (!isMemberIncluded(parent, updatedBreeding.parents)) {
       // 除外されたメンバーのみ
       const prevAnimal = getAnimalById(parent.id, allAnimals);
-      const updatedAnimal = updateParentAnimalOnLeavingBreeding(
-        prevAnimal,
-        prevBreeding.id,
-        userId
+      updatedAnimals.push(
+        updateParentAnimalOnLeavingBreeding(prevAnimal, prevBreeding.id, userId)
       );
-      commonFunc(updatedAnimal);
     }
   });
 
   // 新children
-  breeding.children.forEach((miniAnimal) => {
+  updatedBreeding.children.forEach((miniAnimal) => {
     if (!isMemberIncluded(miniAnimal, prevBreeding.children)) {
       // 新メンバーのみ
       const prevAnimal = getAnimalById(miniAnimal.id, allAnimals);
-      const updatedAnimal = updateChildAnimalOnAddedToBreeding(
-        prevAnimal,
-        breeding.id,
-        userId
+      updatedAnimals.push(
+        updateChildAnimalOnAddedToBreeding(
+          prevAnimal,
+          updatedBreeding.id,
+          userId
+        )
       );
-      commonFunc(updatedAnimal);
     }
   });
 
   // 旧children
   prevBreeding.children.forEach((miniAnimal) => {
-    if (!isMemberIncluded(miniAnimal, breeding.children)) {
+    if (!isMemberIncluded(miniAnimal, updatedBreeding.children)) {
       // 除外されたメンバーのみ
       const prevAnimal = getAnimalById(miniAnimal.id, allAnimals);
-      const updatedAnimal = updateChildAnimalOnLeavingBreeding(
-        prevAnimal,
-        userId
+      updatedAnimals.push(
+        updateChildAnimalOnLeavingBreeding(prevAnimal, userId)
       );
-      commonFunc(updatedAnimal);
     }
   });
 
-  await batch.commit();
+  if (batch) {
+    // breedingのバッチをセット
+    batch.set(getRef(userId, "breedings", updatedBreeding.id), updatedBreeding);
 
-  mutateDocs(breedingsMutator, copiedAllBreedings);
-  mutateDocs(animalsMutator, copiedAllAnimals);
+    // animalsのバッチをセット
+    updatedAnimals.forEach((updatedAnimal) => {
+      batch.set(getRef(userId, "animals", updatedAnimal.id), updatedAnimal);
+    });
+    await batch.commit();
+  }
+
+  // breedingをmutate
+  const copiedAllBreedings = [...allBreedings];
+  modifyCopiedDocs("updated", updatedBreeding, copiedAllBreedings);
+
+  if (mutators) {
+    mutateDocs(mutators.breedingsMutator, copiedAllBreedings);
+  }
+  if (setters) {
+    setters.setAllBreedings(copiedAllBreedings);
+    setters.setCurrentBreeding(updatedBreeding);
+  }
+
+  // animalをmutate
+  if (updatedAnimals.length > 0) {
+    const copiedAllAnimals = [...allAnimals];
+    updatedAnimals.forEach((updatedAnimal) => {
+      modifyCopiedDocs("updated", updatedAnimal, copiedAllAnimals);
+    });
+
+    if (mutators) {
+      mutateDocs(mutators.animalsMutator, copiedAllAnimals);
+    }
+    if (setters) {
+      setters.setAllAnimals(copiedAllAnimals);
+    }
+  }
 };

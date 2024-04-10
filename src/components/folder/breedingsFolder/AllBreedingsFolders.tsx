@@ -1,7 +1,7 @@
 import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchBreedingsFolders } from "../../../utils/folder/folderUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { AllFolders } from "../base/AllFolders";
 
 export const AllBreedingsFolders = () => {
@@ -16,6 +16,6 @@ export const AllBreedingsFolders = () => {
     );
   }
   if (breedingsFoldersErr) {
-    return <NewMsg role="err">{breedingsFoldersErr.message}</NewMsg>;
+    return <Msg role="err">{breedingsFoldersErr.message}</Msg>;
   }
 };

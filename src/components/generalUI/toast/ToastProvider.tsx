@@ -15,22 +15,21 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     }
     timerRef.current = setTimeout(() => {
       setIsShown(false);
-    }, 5000);
+    }, 6000);
   };
 
   return (
     <>
       <ToastContext.Provider value={showToast}>
-        {/* Children = Header, Body, Footer */}
         {children}
       </ToastContext.Provider>
       {/* Toast */}
       <div
-        className={`fixed inset-x-0 bottom-5 transition-opacity duration-200 ${
-          isShown ? "opacity-100" : "opacity-0"
+        className={`fixed inset-x-0 top-full transition-transform duration-200 ${
+          isShown ? "-translate-y-[calc(100%+50px)]" : "translate-y-0"
         }`}
       >
-        <div className="mx-auto bg-slate-600 text-white px-3 py-2 rounded w-fit">
+        <div className="mx-auto bg-slate-900 shadow-xl text-white px-3 py-2 rounded w-fit">
           {text}
         </div>
       </div>

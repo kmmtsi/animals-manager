@@ -1,6 +1,7 @@
 import { User, onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, ScrollRestoration } from "react-router-dom";
+import { ToastProvider } from "./components/generalUI/toast/ToastProvider";
 import { common } from "./utils/css";
 import { auth } from "./utils/firebase";
 
@@ -25,7 +26,10 @@ export const App = () => {
   return (
     // 共通CSSをここに記述する
     <div className={common}>
-      <Outlet context={user} />
+      <ToastProvider>
+        <Outlet context={user} />
+      </ToastProvider>
+      <ScrollRestoration />
     </div>
   );
 };

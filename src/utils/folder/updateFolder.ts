@@ -6,7 +6,7 @@ import {
   updateAnimalOnLeavingFolder,
 } from "../animal/updateAnimal";
 import {
-  updateBreedingByRemovingFolder,
+  updateBreedingOnLeavingFolder,
   updateBreedingOnAddedToFolder,
 } from "../breeding/updateBreeding";
 import {
@@ -83,7 +83,7 @@ export const handleUpdateFolderForm = async <T extends Animal | Breeding>(
   const updatedFolder = updateFolder(data, prevFolder, userId);
   batch.set(getRef(userId, `${type}s`, updatedFolder.id), updatedFolder);
 
-  // animalの更新
+  // itemの更新
   let copiedAllItems: T[] | undefined;
   if (isItemsChanged) {
     copiedAllItems = [...allItems];
@@ -128,7 +128,7 @@ export const handleUpdateFolderForm = async <T extends Animal | Breeding>(
                 updatedFolder.id,
                 userId
               )
-            : updateBreedingByRemovingFolder(
+            : updateBreedingOnLeavingFolder(
                 prevItem as Breeding,
                 updatedFolder.id,
                 userId

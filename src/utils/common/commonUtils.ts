@@ -7,12 +7,20 @@ import { Animal, Breeding, Folder } from "./definitions";
 
 export const getNewRef = (
   userId: string,
-  collectionName: "animals" | "breedings" | "animalsFolders" | "breedingsFolders"
+  collectionName:
+    | "animals"
+    | "breedings"
+    | "animalsFolders"
+    | "breedingsFolders"
 ) => doc(collection(db, "users", userId, collectionName));
 
 export const getRef = (
   userId: string,
-  collectionName: "animals" | "breedings" | "animalsFolders" | "breedingsFolders",
+  collectionName:
+    | "animals"
+    | "breedings"
+    | "animalsFolders"
+    | "breedingsFolders",
   id: string
 ) => doc(db, "users", userId, collectionName, id);
 
@@ -65,22 +73,22 @@ export const convertErrToMsg = (err: unknown): string => {
 export const modifyCopiedDocs = <T extends Animal | Breeding | Folder>(
   operation: "created" | "updated" | "deleted",
   doc: T,
-  docs: T[]
+  copiedDocs: T[]
 ) => {
   switch (operation) {
     case "created":
-      docs.push(doc);
+      copiedDocs.unshift(doc);
       break;
     case "updated":
       {
-        const index = docs.findIndex((docItem) => docItem.id === doc.id);
-        docs[index] = doc;
+        const index = copiedDocs.findIndex((docItem) => docItem.id === doc.id);
+        copiedDocs[index] = doc;
       }
       break;
     case "deleted":
       {
-        const index = docs.findIndex((docItem) => docItem.id === doc.id);
-        docs.splice(index, 1);
+        const index = copiedDocs.findIndex((docItem) => docItem.id === doc.id);
+        copiedDocs.splice(index, 1);
       }
       break;
   }

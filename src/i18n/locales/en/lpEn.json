@@ -1,0 +1,30 @@
+{
+  "hero": {
+    "title": "Simplify your animals management.",
+    "desc1": "Enter animal and breeding information once to see how each animal relates to the other!",
+    "desc2": "There is no need to enter the same thing over and over again."
+  },
+  "price": {
+    "title": "Use for free",
+    "desc1": "The service will be free of charge at this moment, as it is being developed by an individual."
+  },
+  "features": {
+    "title": "Features",
+    "registerAnimal": {
+      "title": "Register Animals",
+      "desc": "You can register individual animal information. There is no limit to the number of animals that can be registered."
+    },
+    "registerBreeding": {
+      "title": "Register breedings",
+      "desc": "When a pair (parents) and children are selected, the relationship between the animals is automatically generated and can be viewed from each animal's page."
+    },
+    "createFolder": {
+      "title": "Create folders",
+      "desc": "Multiple animals and breedings can be organized in folders and managed as a group."
+    },
+    "availableFields": "Available fields",
+    "developingFields": "Developing fields",
+    "futurePlans": "I am constantly developing to add other functions such as pedigree creation and animal sales.",
+    "sendFeatureRequest": "Send features request to the developer"
+  }
+}

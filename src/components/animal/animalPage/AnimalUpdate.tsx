@@ -1,63 +1,38 @@
-import { User } from "firebase/auth";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router-dom";
-import { KeyedMutator } from "swr";
-import { handleUpdateAnimalForm } from "../../../utils/animal/updateAnimal";
-import { convertErrToMsg } from "../../../utils/common/commonUtils";
-import {
-  Animal,
-  AnimalFormData,
-  Breeding,
-} from "../../../utils/common/definitions";
-import { useToast } from "../../generalUI/toast/useToast";
+import { Animal } from "../../../utils/common/definitions";
+import { FormOperation } from "../../generalUI/form/Form";
 import { AnimalForm } from "../AnimalForm";
 
 export const AnimalUpdate = ({
-  prevAnimal,
+  animal,
   setIsUpdate,
   allAnimals,
-  allBreedings,
-  animalsMutator,
-  breedingsMutator,
+  formOperation,
 }: {
-  prevAnimal: Animal;
+  animal: Animal;
   setIsUpdate: Dispatch<SetStateAction<boolean>>;
   allAnimals: Animal[];
-  allBreedings: Breeding[];
-  animalsMutator: KeyedMutator<Animal[]>;
-  breedingsMutator: KeyedMutator<Breeding[]>;
+  formOperation: FormOperation;
 }) => {
-  const user = useOutletContext<User>();
-  const showToast = useToast();
   const { t } = useTranslation();
+  const [name, setName] = useState(animal.name);
 
   return (
     <AnimalForm
-      defaultName={prevAnimal.name}
-      defaultSex={prevAnimal.sex}
-      defaultNote={prevAnimal.note}
+      name={name}
+      prevName={animal.name}
+      setName={setName}
+      defaultSex={animal.sex}
+      defaultNote={animal.note}
+      defaultDateOfBirth={animal.dateOfBirth}
+      defaultHealthCondition={animal.healthCondition}
+      allAnimals={allAnimals}
       submitBtnText={t("update")}
       onCancelClick={() => {
         setIsUpdate(false);
       }}
-      formOperation={async (data) => {
-        try {
-          await handleUpdateAnimalForm(
-            data as AnimalFormData,
-            user.uid,
-            allAnimals,
-            allBreedings,
-            animalsMutator,
-            breedingsMutator,
-            prevAnimal
-          );
-          showToast(t("animalUpdated"));
-          setIsUpdate(false);
-        } catch (err) {
-          showToast(convertErrToMsg(err));
-        }
-      }}
+      formOperation={formOperation}
     />
   );
 };

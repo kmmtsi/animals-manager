@@ -1,10 +1,10 @@
 import { writeBatch } from "firebase/firestore";
+import { Dispatch, SetStateAction } from "react";
 import { KeyedMutator } from "swr";
 import i18n from "../../i18n/config";
-import { getBreedingById } from "../breeding/breedingUtils";
 import {
   updateBreedingOnChildAnimalInfoChanged,
-  updateBreedingOnParentAnimalInfoChanged,
+  updateBreedingsOnParentAnimalInfoChanged,
 } from "../breeding/updateBreeding";
 import {
   CustomErr,
@@ -18,6 +18,7 @@ import {
   AnimalFormData,
   AnimalUpdateData,
   Breeding,
+  MiniAnimal,
 } from "../common/definitions";
 import { db } from "../firebase";
 
@@ -26,18 +27,31 @@ export const updateAnimal = (
   userId: string,
   prevAnimal: Animal
 ) => {
-  const { name, sex, breedingIdAsChild, breedingIdsAsParent, note, folderIds } =
-    data;
+  const {
+    name,
+    sex,
+    breedingIdAsChild,
+    breedingIdsAsParent,
+    note,
+    dateOfBirth,
+    healthCondition,
+    folderIds,
+  } = data;
   const animal: Animal = {
-    ...prevAnimal,
     name: name ?? prevAnimal.name,
     sex: sex ?? prevAnimal.sex,
     breedingIdAsChild: breedingIdAsChild ?? prevAnimal.breedingIdAsChild,
     breedingIdsAsParent: breedingIdsAsParent ?? prevAnimal.breedingIdsAsParent,
     note: note ?? prevAnimal.note,
+    dateOfBirth: dateOfBirth ?? prevAnimal.dateOfBirth,
+    healthCondition: healthCondition ?? prevAnimal.healthCondition,
     folderIds: folderIds ?? prevAnimal.folderIds,
     updatedAt: getTimestamp(),
     updatedBy: userId,
+    // 以下変更なし
+    id: prevAnimal.id,
+    createdAt: prevAnimal.createdAt,
+    createdBy: prevAnimal.createdBy,
   };
   return animal;
 };
@@ -81,6 +95,19 @@ export const updateParentAnimalOnAddedToBreeding = (
     prevAnimal
   );
 
+export const updateChildAnimalOnAddedToBreeding = (
+  prevAnimal: Animal,
+  breedingId: string,
+  userId: string
+) =>
+  updateAnimal(
+    {
+      breedingIdAsChild: breedingId,
+    },
+    userId,
+    prevAnimal
+  );
+
 export const updateParentAnimalOnLeavingBreeding = (
   prevAnimal: Animal,
   breedingId: string,
@@ -91,19 +118,6 @@ export const updateParentAnimalOnLeavingBreeding = (
       breedingIdsAsParent: prevAnimal.breedingIdsAsParent.filter(
         (id) => id !== breedingId
       ),
-    },
-    userId,
-    prevAnimal
-  );
-
-export const updateChildAnimalOnAddedToBreeding = (
-  prevAnimal: Animal,
-  breedingId: string,
-  userId: string
-) =>
-  updateAnimal(
-    {
-      breedingIdAsChild: breedingId,
     },
     userId,
     prevAnimal
@@ -121,82 +135,130 @@ export const updateChildAnimalOnLeavingBreeding = (
     prevAnimal
   );
 
+const checkIfFieldsChanged = (data: AnimalFormData, prevAnimal: Animal) => {
+  let isNameChanged,
+    isSexChanged,
+    isNoteChanged,
+    isHealthConditionChanged,
+    isDateOfBirthChanged = false;
+
+  if (data.name !== prevAnimal.name) isNameChanged = true;
+  if (data.sex !== prevAnimal.sex) isSexChanged = true;
+  if (data.note !== prevAnimal.note) isNoteChanged = true;
+  if (data.healthCondition !== prevAnimal.healthCondition)
+    isHealthConditionChanged = true;
+  if (data.dateOfBirth !== prevAnimal.dateOfBirth) isDateOfBirthChanged = true;
+
+  if (
+    !isNameChanged &&
+    !isSexChanged &&
+    !isNoteChanged &&
+    !isHealthConditionChanged &&
+    !isDateOfBirthChanged
+  ) {
+    throw new CustomErr(i18n.t("noChangeDetected"));
+  }
+
+  return { isNameChanged, isSexChanged };
+};
+
 export const handleUpdateAnimalForm = async (
   data: AnimalFormData,
   userId: string,
   allAnimals: Animal[],
   allBreedings: Breeding[],
-  animalsMutator: KeyedMutator<Animal[]>,
-  breedingsMutator: KeyedMutator<Breeding[]>,
-  prevAnimal: Animal
-) => {
-  let isNameChanged,
-    isSexChanged,
-    isNoteChanged = false;
-
-  if (data.name !== prevAnimal.name) isNameChanged = true;
-  if (data.sex !== prevAnimal.sex) isSexChanged = true;
-  if (data.note !== prevAnimal.note) isNoteChanged = true;
-
-  if (!isNameChanged && !isSexChanged && !isNoteChanged) {
-    throw new CustomErr(i18n.t("noChangeDetected"));
+  prevAnimal: Animal,
+  options: {
+    mutators?: {
+      animalsMutator: KeyedMutator<Animal[]>;
+      breedingsMutator: KeyedMutator<Breeding[]>;
+    };
+    setters?: {
+      setCurrentAnimal: Dispatch<SetStateAction<Animal>>;
+      setAllAnimals: Dispatch<SetStateAction<Animal[]>>;
+      setAllBreedings: Dispatch<SetStateAction<Breeding[]>>;
+    };
   }
+) => {
+  /* フィールドを追加する毎に必ず更新 */
+  const { isNameChanged, isSexChanged } = checkIfFieldsChanged(
+    data,
+    prevAnimal
+  );
 
-  const batch = writeBatch(db);
+  const mutators = options.mutators;
+  const setters = options.setters;
+
+  // mutatorsがあるときのみDBの処理を行う
+  const batch = mutators && writeBatch(db);
 
   // animalを更新
-  const animal = updateAnimal(data, userId, prevAnimal);
+  const updatedAnimal = updateAnimal(data, userId, prevAnimal);
 
-  batch.set(getRef(userId, "animals", animal.id), animal);
-
-  let copiedAllBreedings: Breeding[] | undefined;
+  let updatedBreedings: Breeding[] | undefined;
 
   if (isNameChanged || isSexChanged) {
     // 紐づくbreeding内の自分の情報を更新する
-    copiedAllBreedings = [...allBreedings];
+    updatedBreedings = [];
 
-    const miniAnimal = { id: animal.id, name: animal.name, sex: animal.sex };
+    const miniAnimal: MiniAnimal = {
+      id: updatedAnimal.id,
+      name: updatedAnimal.name,
+      sex: updatedAnimal.sex,
+    };
 
     // breedingIdAsChild
-    const prevBrIdAsChild = prevAnimal.breedingIdAsChild;
+    const updatedBreedingAsChild = updateBreedingOnChildAnimalInfoChanged(
+      updatedAnimal.breedingIdAsChild,
+      miniAnimal,
+      allBreedings,
+      userId
+    );
 
-    if (prevBrIdAsChild !== "") {
-      const prevBreeding = getBreedingById(prevBrIdAsChild, allBreedings);
-
-      const newBreeding = updateBreedingOnChildAnimalInfoChanged(
-        prevBreeding,
-        miniAnimal,
-        userId
-      );
-
-      batch.set(getRef(userId, "breedings", newBreeding.id), newBreeding);
-      modifyCopiedDocs("updated", newBreeding, copiedAllBreedings);
-    }
+    updatedBreedingAsChild && updatedBreedings.push(updatedBreedingAsChild);
 
     // breedingIdsAsParent
-    animal.breedingIdsAsParent.forEach((brId) => {
-      const prevBreeding = getBreedingById(brId, allBreedings);
+    const updatedBreedingsAsParent = updateBreedingsOnParentAnimalInfoChanged(
+      updatedAnimal.breedingIdsAsParent,
+      miniAnimal,
+      allBreedings,
+      userId
+    );
 
-      const newBreeding = updateBreedingOnParentAnimalInfoChanged(
-        prevBreeding,
-        miniAnimal,
-        userId
-      );
-
-      batch.set(getRef(userId, "breedings", newBreeding.id), newBreeding);
-      modifyCopiedDocs(
-        "updated",
-        newBreeding,
-        copiedAllBreedings as Breeding[]
-      );
-    });
+    updatedBreedings = [...updatedBreedings, ...updatedBreedingsAsParent];
   }
 
-  await batch.commit();
+  if (batch) {
+    // animalのバッチをセット
+    batch.set(getRef(userId, "animals", updatedAnimal.id), updatedAnimal);
 
+    // breedingsのバッチをセット
+    updatedBreedings &&
+      updatedBreedings.forEach((breeding) =>
+        batch.set(getRef(userId, "breedings", breeding.id), breeding)
+      );
+
+    await batch.commit();
+  }
+
+  // animalをmutate
   const copiedAllAnimals = [...allAnimals];
-  modifyCopiedDocs("updated", animal, copiedAllAnimals);
-  mutateDocs(animalsMutator, copiedAllAnimals);
+  modifyCopiedDocs("updated", updatedAnimal, copiedAllAnimals);
 
-  copiedAllBreedings && mutateDocs(breedingsMutator, copiedAllBreedings);
+  mutators && mutateDocs(mutators.animalsMutator, copiedAllAnimals);
+  if (setters) {
+    setters.setCurrentAnimal(updatedAnimal);
+    setters.setAllAnimals(copiedAllAnimals);
+  }
+
+  // breedingsをmutate
+  if (updatedBreedings) {
+    const copiedAllBreedings = [...allBreedings];
+    updatedBreedings.forEach((breeding) => {
+      modifyCopiedDocs("updated", breeding, copiedAllBreedings);
+    });
+
+    mutators && mutateDocs(mutators.breedingsMutator, copiedAllBreedings);
+    setters && setters.setAllBreedings(copiedAllBreedings);
+  }
 };

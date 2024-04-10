@@ -1,9 +1,5 @@
-import { User } from "firebase/auth";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router-dom";
-import { KeyedMutator } from "swr";
-import { handleUpdateBreedingForm } from "../../../utils/breeding/updateBreeding";
 import { convertErrToMsg } from "../../../utils/common/commonUtils";
 import {
   Animal,
@@ -14,22 +10,19 @@ import {
 import { useToast } from "../../generalUI/toast/useToast";
 import { BreedingForm } from "../BreedingForm";
 
+export type HandleUpdateBreeding = (data: BreedingFormData) => Promise<void>;
+
 export const BreedingUpdate = ({
   prevBreeding,
   setIsUpdate,
-  allBreedings,
   allAnimals,
-  breedingsMutator,
-  animalsMutator,
+  handleUpdateBreeding,
 }: {
   prevBreeding: Breeding;
   setIsUpdate: Dispatch<SetStateAction<boolean>>;
-  allBreedings: Breeding[];
   allAnimals: Animal[];
-  breedingsMutator: KeyedMutator<Breeding[]>;
-  animalsMutator: KeyedMutator<Animal[]>;
+  handleUpdateBreeding: HandleUpdateBreeding;
 }) => {
-  const user = useOutletContext<User>();
   const { t } = useTranslation();
   const showToast = useToast();
 
@@ -53,19 +46,11 @@ export const BreedingUpdate = ({
       }}
       formOperation={async (data) => {
         try {
-          await handleUpdateBreedingForm(
-            {
-              parents,
-              children,
-              ...(data as Omit<BreedingFormData, "parents" | "children">),
-            },
-            user.uid,
-            allAnimals,
-            allBreedings,
-            animalsMutator,
-            breedingsMutator,
-            prevBreeding
-          );
+          await handleUpdateBreeding({
+            parents,
+            children,
+            ...data,
+          } as BreedingFormData);
           // 書き込み結果
           showToast(t("breedingUpdated"));
           // リセット

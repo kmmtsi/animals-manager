@@ -1,20 +1,20 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faCircleInfo,
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { msgBlue, msgRed } from "../../utils/css";
 import { ReactNode } from "react";
 
 export const Msg = ({
   role,
-  children,
   className = "",
+  children,
 }: {
   role: "success" | "err" | "info";
-  children: ReactNode;
   className?: string;
+  children: ReactNode;
 }) => {
   let customCls: string;
   let icon;
@@ -46,7 +46,6 @@ export const Msg = ({
       <div>
         <FontAwesomeIcon icon={icon} />
       </div>
-      {/* divで囲むことでchildrenに対するflexの影響を抑制 */}
       <div>{children}</div>
     </div>
   );

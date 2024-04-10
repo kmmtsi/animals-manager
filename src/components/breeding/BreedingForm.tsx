@@ -4,7 +4,7 @@ import { getSuggestableMiniAnimals } from "../../utils/breeding/breedingUtils";
 import {
   Animal,
   MiniAnimal,
-  Status,
+  StatusValue,
   maxAnimalName,
   maxBreedingNote,
   maxChildren,
@@ -22,10 +22,12 @@ import {
   select,
   textArea,
 } from "../../utils/css";
-import { NameAndSex } from "../animal/NameAndSex";
+import { NameAndSex } from "../animal/formattedValues/NameAndSex";
 import { Form, FormOperation } from "../generalUI/form/Form";
 import { Label } from "../generalUI/form/Label";
 import { SearchInput } from "../generalUI/form/SearchInput";
+
+export type OnCancelClick = MouseEventHandler<HTMLButtonElement> | undefined;
 
 export const BreedingForm = ({
   parents,
@@ -43,7 +45,7 @@ export const BreedingForm = ({
 }: {
   parents: MiniAnimal[];
   children: MiniAnimal[];
-  defaultStatus: Status;
+  defaultStatus: StatusValue;
   defaultNote: string;
   defaultStartDate: string;
   defaultEndDate: string;
@@ -51,7 +53,7 @@ export const BreedingForm = ({
   setParents: Dispatch<SetStateAction<MiniAnimal[]>>;
   setChildren: Dispatch<SetStateAction<MiniAnimal[]>>;
   submitBtnText: string;
-  onCancelClick: MouseEventHandler<HTMLButtonElement>;
+  onCancelClick: OnCancelClick;
   formOperation: FormOperation;
 }) => {
   const { t } = useTranslation();
@@ -107,7 +109,7 @@ export const BreedingForm = ({
         >
           {statusOptions.map((opt, i) => (
             <option key={i} value={opt.value}>
-              {opt.label}
+              {t(opt.label)}
             </option>
           ))}
         </select>
@@ -155,13 +157,15 @@ export const BreedingForm = ({
           {submitBtnText}
         </button>
         {/* キャンセルボタン */}
-        <button
-          type="button"
-          className={`${btn} ${btnTextOnly}`}
-          onClick={onCancelClick}
-        >
-          {t("cancel")}
-        </button>
+        {onCancelClick && (
+          <button
+            type="button"
+            className={`${btn} ${btnTextOnly}`}
+            onClick={onCancelClick}
+          >
+            {t("cancel")}
+          </button>
+        )}
       </div>
     </Form>
   );

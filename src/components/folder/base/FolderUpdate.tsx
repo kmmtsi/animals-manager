@@ -37,6 +37,7 @@ export const FolderUpdate = <T extends Animal | Breeding>({
       type={type}
       {...folderFormProps}
       allItems={allItems}
+      submitBtnText="update"
       onCancelClick={() => setIsUpdate(false)}
       formOperation={async (data) => {
         try {

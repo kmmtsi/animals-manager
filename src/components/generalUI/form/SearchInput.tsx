@@ -62,12 +62,12 @@ export const SearchInput = <T extends ItemBase>({
 
   return (
     // 外枠
-    <div className="flex flex-wrap gap-2 items-center p-1 border rounded ">
+    <div className="flex flex-wrap gap-2 items-center p-1 border rounded">
       {/* 選択中アイテム */}
       {currentItems.map((item, i) => (
         <div
           key={i}
-          className="flex gap-x-1 items-center w-fit px-3 py-1 rounded-full bg-slate-200"
+          className="flex gap-x-1 items-center w-fit px-3 py-1 rounded-full bg-gray-100"
         >
           {renderItem(item)}
           <ClickableIcon icon={faClose} onClick={handleXClick(item)} />
@@ -76,7 +76,7 @@ export const SearchInput = <T extends ItemBase>({
       {/* 入力関連 */}
       {currentItems.length < maxSelect && (
         /* input + サジェスト */
-        <div className="relative grow min-w-64">
+        <div className="relative grow min-w-40">
           {/* input */}
           <input
             value={inputText}

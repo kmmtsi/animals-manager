@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  AnimalFsToS,
-  BreedingFsToS,
-} from "./animalAndBreeding/items/tableView/tableUtils";
-import { btn, checkBox, hover } from "../../utils/css";
+  AnimalColumnPreferences,
+  BreedingColumnPreferences,
+} from "./tableUtils";
+import { btn, checkBox, hover, zAuthedMain } from "../../../../../utils/css";
 
-export const FsToSPreference = <T extends AnimalFsToS | BreedingFsToS>({
+export const FsToSPreference = <
+  T extends AnimalColumnPreferences | BreedingColumnPreferences
+>({
   fsToS,
   handleCheckFToS,
 }: {
@@ -17,8 +19,10 @@ export const FsToSPreference = <T extends AnimalFsToS | BreedingFsToS>({
   const { t } = useTranslation();
 
   return (
-    <div className="relative">
+    <div className={`relative ${zAuthedMain.children.tableColumnConfig}`}>
+      {/* ボタン */}
       <button
+        type="button"
         className={`${btn} ${hover}`}
         onClick={() => {
           setIsBoxShown(true);

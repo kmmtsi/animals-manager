@@ -1,7 +1,7 @@
 import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchAnimalsFolders } from "../../../utils/folder/folderUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { AllFolders } from "../base/AllFolders";
 
 export const AllAnimalsFolders = () => {
@@ -14,6 +14,6 @@ export const AllAnimalsFolders = () => {
     return <AllFolders type="animalsFolder" allFolders={allAnimalsFolders} />;
   }
   if (animalsFoldersErr) {
-    return <NewMsg role="err">{animalsFoldersErr.message}</NewMsg>;
+    return <Msg role="err">{animalsFoldersErr.message}</Msg>;
   }
 };

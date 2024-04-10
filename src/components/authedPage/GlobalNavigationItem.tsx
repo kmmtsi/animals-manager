@@ -1,36 +1,32 @@
 import {
-  IconDefinition,
   faChevronDown,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MouseEventHandler, useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
+import { NavItem } from "../../utils/common/pageUtils";
 import { hover } from "../../utils/css";
-
-type Page = {
-  path: string;
-  name: string;
-  icon: IconDefinition;
-  children?: Page[];
-};
+import { CloseNav } from "./AuthedPage";
 
 export const GlobalNavigationItem = ({
-  page,
-  onClick,
+  navItem,
+  closeNav,
 }: {
-  page: Page;
-  onClick: MouseEventHandler<HTMLAnchorElement>;
+  navItem: NavItem;
+  closeNav?: CloseNav;
 }) => {
-  const { path, name, icon, children } = page;
+  const { t } = useTranslation();
+  
+  const { path, name, icon, children } = navItem;
   const [isChildrenOpen, setIsChildrenOpen] = useState<boolean>(false);
 
   return (
     <div className="space-y-1">
-      <div
-        className={`rounded p-1 flex items-center has-[a[aria-current="page"]]:bg-blue-50`}
-      >
+      <div className='rounded flex items-center has-[a[aria-current="page"]]:bg-blue-50'>
         {children && children.length > 0 && (
+          // 子要素を開くボタン
           <button
             className={`rounded p-1 text-slate-400 text-xs ${hover} w-6 h-6`}
             onClick={() => setIsChildrenOpen((prev) => !prev)}
@@ -43,7 +39,7 @@ export const GlobalNavigationItem = ({
         <NavLink
           to={path}
           end={false}
-          onClick={onClick}
+          onClick={() => closeNav && closeNav()}
           className={({ isActive }) => {
             return `rounded p-1.5 flex items-center gap-x-2 w-full ${hover} ${
               isActive ? "font-bold text-blue-500" : ""
@@ -51,14 +47,18 @@ export const GlobalNavigationItem = ({
           }}
         >
           <FontAwesomeIcon icon={icon} />
-          <span>{name}</span>
+          <span>{t(name)}</span>
         </NavLink>
       </div>
       {children && isChildrenOpen && (
         <div className="pl-3">
           <div className="border-l pl-1 py-0.5">
             {children.map((child, i) => (
-              <GlobalNavigationItem key={i} page={child} onClick={onClick} />
+              <GlobalNavigationItem
+                key={i}
+                navItem={child}
+                closeNav={closeNav}
+              />
             ))}
           </div>
         </div>

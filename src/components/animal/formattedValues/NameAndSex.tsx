@@ -1,24 +1,32 @@
 import { faMars, faVenus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link } from "react-router-dom";
-import { Animal, MiniAnimal } from "../../utils/common/definitions";
-import { animalLink } from "../../utils/css";
-import { getPathToAnimalPage } from "../../utils/common/pageUtils";
+import { Animal, MiniAnimal } from "../../../utils/common/definitions";
+
+export type OnAnimalClick = (animalId: string) => void;
 
 export const NameAndSex = ({
   animal,
-  isLink,
+  onAnimalClick,
 }: {
   animal: Animal | MiniAnimal;
-  isLink?: boolean;
+  onAnimalClick?: OnAnimalClick;
 }) => {
   const { id, name, sex } = animal;
 
-  const body = (
-    <div data-id={id} className={`w-fit ${isLink ? animalLink : ""}`}>
+  return (
+    <div
+      data-id={id}
+      className={`w-fit ${
+        onAnimalClick ? "border-b border-slate-300 cursor-pointer" : ""
+      }`}
+      onClick={() => onAnimalClick && onAnimalClick(id)}
+    >
       <span className="break-all">{name}</span>
       {sex === "male" && (
-        <FontAwesomeIcon icon={faMars} className="scale-90 ml-1 text-blue-500" />
+        <FontAwesomeIcon
+          icon={faMars}
+          className="scale-90 ml-1 text-blue-500"
+        />
       )}
       {sex === "female" && (
         <FontAwesomeIcon
@@ -28,6 +36,4 @@ export const NameAndSex = ({
       )}
     </div>
   );
-
-  return isLink ? <Link to={getPathToAnimalPage(id)}>{body}</Link> : body;
 };

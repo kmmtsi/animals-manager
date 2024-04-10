@@ -1,29 +1,27 @@
 import { User } from "firebase/auth";
 import { Dispatch, SetStateAction } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import { KeyedMutator } from "swr";
-import {
-  convertErrToMsg,
-  convertTsToLocalDateString,
-} from "../../../utils/common/commonUtils";
 import { Animal, Breeding, Folder } from "../../../utils/common/definitions";
 import {
   getPathToAllAnimalsFolders,
   getPathToAllBreedingsFolders,
 } from "../../../utils/common/pageUtils";
-import {
-  btn,
-  btnOutlineBlue,
-  btnOutlineRed,
-  fieldGapY,
-  formGapY,
-  infoBox,
-} from "../../../utils/css";
 import { handleDeleteFolders } from "../../../utils/folder/deleteFolders";
 import { Animals } from "../../animal/animals/Animals";
 import { Breedings } from "../../breeding/breedings/Breedings";
-import { useToast } from "../../generalUI/toast/useToast";
+import { ItemInfoBase } from "../../generalUI/animalAndBreeding/item/ItemInfoBase";
+
+export type FolderInfoProps<T> = {
+  type: T extends Animal ? "animalsFolder" : "breedingsFolder";
+  folder: Folder;
+  allFolders: Folder[];
+  allItems: T[];
+  foldersMutator: KeyedMutator<Folder[]>;
+  itemsMutator: KeyedMutator<T[]>;
+  setIsUpdate: Dispatch<SetStateAction<boolean>>;
+  handleDeleteItems: (checkedItems: T[]) => Promise<void>;
+};
 
 export const FolderInfo = <T extends Animal | Breeding>({
   type,
@@ -33,102 +31,58 @@ export const FolderInfo = <T extends Animal | Breeding>({
   foldersMutator,
   itemsMutator,
   setIsUpdate,
-}: {
-  type: T extends Animal ? "animalsFolder" : "breedingsFolder";
-  folder: Folder;
-  allFolders: Folder[];
-  allItems: T[];
-  foldersMutator: KeyedMutator<Folder[]>;
-  itemsMutator: KeyedMutator<T[]>;
-  setIsUpdate: Dispatch<SetStateAction<boolean>>;
-}) => {
-  const { t } = useTranslation();
+  handleDeleteItems,
+}: FolderInfoProps<T>) => {
   const authUser = useOutletContext<User>();
-  const navigate = useNavigate();
-  const showToast = useToast();
-
-  const { itemIds, note, createdAt, createdBy, updatedAt, updatedBy } = folder;
+  const { itemIds } = folder;
 
   const items = itemIds.map(
     (id) => allItems.find((item) => item.id === id) as T
   );
 
   return (
-    <div className={formGapY}>
+    <ItemInfoBase
+      note={folder.note}
+      createdAt={folder.createdAt}
+      updatedAt={folder.updatedAt}
+      setIsUpdateToTrue={() => setIsUpdate(true)}
+      deleteItemBtnConfig={{
+        label: "deleteFolder",
+        handleDeleteItem: async () => {
+          // 削除処理
+          await handleDeleteFolders<T>(
+            `${type}s` as T extends Animal
+              ? "animalsFolders"
+              : "breedingsFolders",
+            [folder],
+            authUser.uid,
+            allFolders,
+            allItems,
+            foldersMutator,
+            itemsMutator
+          );
+        },
+        toastMsg: "folderDeleted",
+        navigateTo:
+          type === "animalsFolder"
+            ? getPathToAllAnimalsFolders()
+            : getPathToAllBreedingsFolders(),
+      }}
+      disableBackBtn={false}
+    >
       {/* テーブル */}
       <div>
         {type === "animalsFolder" ? (
           <Animals animals={items as Animal[]} />
         ) : (
-          <Breedings breedings={items as Breeding[]} />
+          <Breedings
+            breedings={items as Breeding[]}
+            handleDeleteBreedings={
+              handleDeleteItems as (checkedItems: Breeding[]) => Promise<void>
+            }
+          />
         )}
       </div>
-      {/* note */}
-      <div className={fieldGapY}>
-        <div>{t("note")}</div>
-        <div className={infoBox}>{note}</div>
-      </div>
-      {/* 作成日 */}
-      <div className={fieldGapY}>
-        <div>{t("createdAt")}</div>
-        <div>{convertTsToLocalDateString(createdAt)}</div>
-      </div>
-      {/* 作成者 */}
-      <div className={fieldGapY}>
-        <div>{t("createdBy")}</div>
-        <div>{createdBy}</div>
-      </div>
-      {/* 更新日 */}
-      <div className={fieldGapY}>
-        <div>{t("updatedAt")}</div>
-        <div>{convertTsToLocalDateString(updatedAt)}</div>
-      </div>
-      {/* 更新者 */}
-      <div className={fieldGapY}>
-        <div>{t("updatedBy")}</div>
-        <div>{updatedBy}</div>
-      </div>
-      <div className="flex gap-x-2">
-        {/* 更新ボタン */}
-        <button
-          type="button"
-          className={`${btn} ${btnOutlineBlue}`}
-          onClick={() => setIsUpdate(true)}
-        >
-          {t("update")}
-        </button>
-        {/* 削除ボタン */}
-        <button
-          type="button"
-          className={`${btn} ${btnOutlineRed}`}
-          onClick={async () => {
-            try {
-              // 削除処理
-              await handleDeleteFolders<T>(
-                `${type}s` as T extends Animal
-                  ? "animalsFolders"
-                  : "breedingsFolders",
-                [folder],
-                authUser.uid,
-                allFolders,
-                allItems,
-                foldersMutator,
-                itemsMutator
-              );
-              showToast(t("folderDeleted"));
-              navigate(
-                type === "animalsFolder"
-                  ? getPathToAllAnimalsFolders()
-                  : getPathToAllBreedingsFolders()
-              );
-            } catch (err) {
-              showToast(convertErrToMsg(err));
-            }
-          }}
-        >
-          {t("deleteFolder")}
-        </button>
-      </div>
-    </div>
+    </ItemInfoBase>
   );
 };

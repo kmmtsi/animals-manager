@@ -12,7 +12,7 @@ import {
   getPathToAnimalsFolderPage,
   getPathToBreedingsFolderPage,
 } from "../../../utils/common/pageUtils";
-import { pageGapY } from "../../../utils/css";
+import { pageGapY, pageTitle } from "../../../utils/css";
 import { handleCreateFolderForm } from "../../../utils/folder/createFolder";
 import { useFolderForm } from "../../../utils/folder/folderUtils";
 import { Breadcrumb } from "../../generalUI/Breadcrumb";
@@ -42,10 +42,12 @@ export const FolderCreate = <T extends Animal | Breeding>({
             : "breedingsFolderCreate"
         }
       />
+      <h1 className={pageTitle}>{t("createFolder")}</h1>
       <FolderForm
         type={type}
         {...folderFormProps}
         allItems={allItems}
+        submitBtnText="createNew"
         onCancelClick={() =>
           navigate(
             type === "animalsFolder"

@@ -1,8 +1,9 @@
 import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchBreedings } from "../../../utils/breeding/breedingUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { AllItemsPage } from "../../generalUI/animalAndBreeding/items/AllItemsPage";
+import { Breedings } from "./Breedings";
 
 export const AllBreedingsPage = () => {
   const authUser = useOutletContext<User>();
@@ -10,9 +11,13 @@ export const AllBreedingsPage = () => {
   const { allBreedings, breedingsErr } = useFetchBreedings(authUser.uid);
 
   if (allBreedings) {
-    return <AllItemsPage type="breedings" allItems={allBreedings} />;
+    return (
+      <AllItemsPage type="breedings">
+        <Breedings breedings={allBreedings} />
+      </AllItemsPage>
+    );
   }
   if (breedingsErr) {
-    return <NewMsg role="err">{breedingsErr.message}</NewMsg>;
+    return <Msg role="err">{breedingsErr.message}</Msg>;
   }
 };

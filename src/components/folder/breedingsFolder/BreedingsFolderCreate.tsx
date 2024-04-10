@@ -2,7 +2,7 @@ import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchBreedings } from "../../../utils/breeding/breedingUtils";
 import { useFetchBreedingsFolders } from "../../../utils/folder/folderUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { FolderCreate } from "../base/FolderCreate";
 
 export const BreedingsFolderCreate = () => {
@@ -28,9 +28,9 @@ export const BreedingsFolderCreate = () => {
   }
   if (breedingsFoldersErr || breedingsErr) {
     return (
-      <NewMsg role="err">
+      <Msg role="err">
         {breedingsFoldersErr?.message || breedingsErr?.message}
-      </NewMsg>
+      </Msg>
     );
   }
 };

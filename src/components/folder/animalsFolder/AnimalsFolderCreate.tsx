@@ -2,7 +2,7 @@ import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchAnimals } from "../../../utils/animal/animalUtils";
 import { useFetchAnimalsFolders } from "../../../utils/folder/folderUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { FolderCreate } from "../base/FolderCreate";
 
 export const AnimalsFolderCreate = () => {
@@ -28,9 +28,7 @@ export const AnimalsFolderCreate = () => {
   }
   if (animalsFoldersErr || animalsErr) {
     return (
-      <NewMsg role="err">
-        {animalsFoldersErr?.message || animalsErr?.message}
-      </NewMsg>
+      <Msg role="err">{animalsFoldersErr?.message || animalsErr?.message}</Msg>
     );
   }
 };

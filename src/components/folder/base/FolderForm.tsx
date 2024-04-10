@@ -18,7 +18,7 @@ import {
   textArea,
   textInput,
 } from "../../../utils/css";
-import { NameAndSex } from "../../animal/NameAndSex";
+import { NameAndSex } from "../../animal/formattedValues/NameAndSex";
 import { BreedingGrid } from "../../breeding/BreedingGrid";
 import { ClickableIcon } from "../../generalUI/ClickableIcon";
 import { Form, FormOperation } from "../../generalUI/form/Form";
@@ -31,6 +31,7 @@ export type FolderFormProps<T extends Animal | Breeding> = {
   itemIds: string[];
   allItems: T[];
   setItemIds: Dispatch<SetStateAction<string[]>>;
+  submitBtnText: string;
   onCancelClick: MouseEventHandler<HTMLButtonElement>;
   formOperation: FormOperation;
 };
@@ -40,8 +41,9 @@ export const FolderForm = <T extends Animal | Breeding>({
   defaultName,
   defaultNote,
   itemIds,
-  setItemIds,
   allItems,
+  setItemIds,
+  submitBtnText,
   onCancelClick,
   formOperation,
 }: FolderFormProps<T>) => {
@@ -57,7 +59,9 @@ export const FolderForm = <T extends Animal | Breeding>({
     <Form className={formGapY} operation={formOperation}>
       {/* name */}
       <div className={formFieldGapY}>
-        <Label htmlFor="name">{t("folderName")}</Label>
+        <Label htmlFor="name" required={true}>
+          {t("folderName")}
+        </Label>
         <input
           id="name"
           name="name"
@@ -159,7 +163,7 @@ export const FolderForm = <T extends Animal | Breeding>({
       <div className="flex gap-x-2">
         {/* 送信ボタン */}
         <button type="submit" className={`${btn} ${btnBlue}`}>
-          {t("create")}
+          {t(submitBtnText)}
         </button>
         {/* キャンセルボタン */}
         <button

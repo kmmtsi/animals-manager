@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Animal, Breeding } from "../../../../utils/common/definitions";
@@ -12,16 +13,14 @@ import {
   pageTitle,
   titleAndBtn,
 } from "../../../../utils/css";
-import { Animals } from "../../../animal/animals/Animals";
-import { Breedings } from "../../../breeding/breedings/Breedings";
 import { Breadcrumb } from "../../Breadcrumb";
 
 export const AllItemsPage = <T extends Animal | Breeding>({
   type,
-  allItems,
+  children,
 }: {
   type: T extends Animal ? "animals" : "breedings";
-  allItems: T[];
+  children: ReactNode;
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -46,11 +45,7 @@ export const AllItemsPage = <T extends Animal | Breeding>({
         </button>
       </div>
       {/* Items */}
-      {type === "animals" ? (
-        <Animals animals={allItems as Animal[]} />
-      ) : (
-        <Breedings breedings={allItems as Breeding[]} />
-      )}
+      {children}
     </div>
   );
 };

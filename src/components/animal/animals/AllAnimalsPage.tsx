@@ -1,28 +1,33 @@
 import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
 import { useFetchAnimals } from "../../../utils/animal/animalUtils";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { AllItemsPage } from "../../generalUI/animalAndBreeding/items/AllItemsPage";
+import { Animals } from "./Animals";
 
 export const AllAnimalsPage = () => {
-  const user = useOutletContext<User>();
+  const authUser = useOutletContext<User>();
 
-  // ソートの準備
-  // const [sortMethod, setSortMethod] = useState<SortMethod>({
-  //   target: "createdAt",
-  //   order: "desc",
-  // });
-
-  const { allAnimals, animalsErr } = useFetchAnimals(user.uid);
+  const { allAnimals, animalsErr } = useFetchAnimals(authUser.uid);
 
   if (allAnimals) {
-    // ソートされたanimalsを取得
-    // const sortedAnimals = getSortedAnimals(allAnimals, sortMethod);
-
-    return <AllItemsPage type="animals" allItems={allAnimals} />;
+    return (
+      <AllItemsPage type="animals">
+        <Animals animals={allAnimals} />
+      </AllItemsPage>
+    );
   }
 
   if (animalsErr) {
-    return <NewMsg role="err">{animalsErr.message}</NewMsg>;
+    return <Msg role="err">{animalsErr.message}</Msg>;
   }
 };
+
+// ソートの準備
+// const [sortMethod, setSortMethod] = useState<SortMethod>({
+//   target: "createdAt",
+//   order: "desc",
+// });
+
+// ソートされたanimalsを取得
+// const sortedAnimals = getSortedAnimals(allAnimals, sortMethod);

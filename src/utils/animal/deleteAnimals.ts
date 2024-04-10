@@ -34,18 +34,12 @@ export const handleDeleteAnimals = async (
     // breedingを更新
     // breedingIdAsChild
     if (deletedAnimal.breedingIdAsChild) {
-      let prevBreeding = updatedBreedings.find(
-        (br) => br.id === deletedAnimal.breedingIdAsChild
+      const index = updatedBreedings.findIndex(
+        (breeding) => breeding.id === deletedAnimal.breedingIdAsChild
       );
 
-      if (prevBreeding) {
-        prevBreeding = updateBreedingOnChildAnimalDeleted(
-          prevBreeding,
-          deletedAnimal.id,
-          userId
-        );
-      } else {
-        prevBreeding = allBreedings.find(
+      if (index === -1) {
+        const prevBreeding = allBreedings.find(
           (br) => br.id === deletedAnimal.breedingIdAsChild
         ) as Breeding;
         updatedBreedings.push(
@@ -55,21 +49,23 @@ export const handleDeleteAnimals = async (
             userId
           )
         );
+      } else {
+        updatedBreedings[index] = updateBreedingOnChildAnimalDeleted(
+          updatedBreedings[index],
+          deletedAnimal.id,
+          userId
+        );
       }
     }
 
     // breedingIdsAsParent
     deletedAnimal.breedingIdsAsParent.forEach((brId) => {
-      let prevBreeding = updatedBreedings.find((br) => br.id === brId);
+      const index = updatedBreedings.findIndex((br) => br.id === brId);
 
-      if (prevBreeding) {
-        prevBreeding = updateBreedingOnParentAnimalDeleted(
-          prevBreeding,
-          deletedAnimal.id,
-          userId
-        );
-      } else {
-        prevBreeding = allBreedings.find((br) => br.id === brId) as Breeding;
+      if (index === -1) {
+        const prevBreeding = allBreedings.find(
+          (br) => br.id === brId
+        ) as Breeding;
         updatedBreedings.push(
           updateBreedingOnParentAnimalDeleted(
             prevBreeding,
@@ -77,27 +73,33 @@ export const handleDeleteAnimals = async (
             userId
           )
         );
+      } else {
+        updatedBreedings[index] = updateBreedingOnParentAnimalDeleted(
+          updatedBreedings[index],
+          deletedAnimal.id,
+          userId
+        );
       }
     });
 
     // folderを更新
     deletedAnimal.folderIds.forEach((folderId) => {
-      let prevFolder = updatedFolders.find(
-        (updFolder) => updFolder.id === folderId
+      const index = updatedFolders.findIndex(
+        (folder) => folder.id === folderId
       );
 
-      if (prevFolder) {
-        prevFolder = updateFolderOnItemDeleted(
-          prevFolder,
-          deletedAnimal.id,
-          userId
-        );
-      } else {
-        prevFolder = allFolders.find(
+      if (index === -1) {
+        const prevFolder = allFolders.find(
           (folder) => folder.id === folderId
         ) as Folder;
         updatedFolders.push(
           updateFolderOnItemDeleted(prevFolder, deletedAnimal.id, userId)
+        );
+      } else {
+        updatedFolders[index] = updateFolderOnItemDeleted(
+          updatedFolders[index],
+          deletedAnimal.id,
+          userId
         );
       }
     });

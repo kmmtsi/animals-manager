@@ -1,8 +1,16 @@
-import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFishFins } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Link } from "react-router-dom";
 
-export const Logo = ({ isLink }: { isLink: boolean }) => {
+export const Logo = ({
+  options,
+}: {
+  options?: {
+    linkTo?: string;
+  };
+}) => {
+  const linkTo = options?.linkTo;
+
   const inner = (
     <>
       <FontAwesomeIcon icon={faFishFins} className="text-blue-500" />
@@ -10,9 +18,9 @@ export const Logo = ({ isLink }: { isLink: boolean }) => {
     </>
   );
 
-  if (isLink) {
+  if (linkTo) {
     return (
-      <Link to="/" className="flex gap-x-1 items-center">
+      <Link to={linkTo} className="flex gap-x-1 items-center">
         {inner}
       </Link>
     );

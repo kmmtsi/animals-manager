@@ -32,7 +32,6 @@ export const createFolder = (
     updatedAt: getTimestamp(),
     updatedBy: userId,
   };
-  console.log(folder);
   return folder;
 };
 

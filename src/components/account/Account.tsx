@@ -12,7 +12,7 @@ import {
 import { auth } from "../../utils/firebase";
 import { useFetchUser } from "../../utils/user/userUtils";
 import { Breadcrumb } from "../generalUI/Breadcrumb";
-import { NewMsg } from "../generalUI/NewMsg";
+import { Msg } from "../generalUI/Msg";
 
 export const Account = () => {
   const authUser = useOutletContext<User>();
@@ -52,6 +52,6 @@ export const Account = () => {
     );
   }
   if (userErr) {
-    return <NewMsg role="err">{userErr.message}</NewMsg>;
+    return <Msg role="err">{userErr.message}</Msg>;
   }
 };

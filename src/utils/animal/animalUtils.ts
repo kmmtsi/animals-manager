@@ -1,19 +1,8 @@
 import { collection, getDocs } from "firebase/firestore";
 import useSWR from "swr";
 import i18n from "../../i18n/config";
-import {
-  Animal,
-  MiniAnimal,
-  maxAnimalName,
-  minAnimalName,
-} from "../common/definitions";
+import { Animal, MiniAnimal } from "../common/definitions";
 import { db } from "../firebase";
-
-// リストの中からIdを元に動物を探す
-export const findAnimalById = <T extends Animal | MiniAnimal>(
-  id: string,
-  animals: T[]
-) => animals.find((animal) => animal.id === id);
 
 /**
  * 動物が見つからない場合エラーを投げる
@@ -25,48 +14,12 @@ export const getAnimalById = <T extends Animal | MiniAnimal>(
   id: string,
   animals: T[]
 ) => {
-  const animal = findAnimalById(id, animals);
+  const animal = animals.find((animal) => animal.id === id);
   if (animal) {
     return animal;
   } else {
     throw new Error(`id: ${id}をもつ動物が見つかりません`);
   }
-};
-
-// リストの中からnameを元に動物を探す
-export const findAnimalByName = <T extends Animal | MiniAnimal>(
-  name: string,
-  animals: T[]
-) => animals.find((animal) => animal.name === name);
-
-/**
- * animalをMiniAnimalに変換
- * @param animal
- * @returns
- */
-export const convertAnimalToMini = (animal: Animal): MiniAnimal => ({
-  id: animal.id,
-  name: animal.name,
-  sex: animal.sex,
-});
-
-/**
- * animalsをMiniAnimalsに変換
- * @param animals
- * @returns
- */
-export const convertAnimalsToMinis = (animals: Animal[]): MiniAnimal[] =>
-  animals.map((animal) => convertAnimalToMini(animal));
-
-export const isSelfPairsChanged = (
-  selfPairs: string[],
-  prevSelfPairs: string[] | undefined
-) => {
-  return (
-    !prevSelfPairs ||
-    selfPairs.length !== prevSelfPairs.length ||
-    selfPairs.some((pair) => !prevSelfPairs.includes(pair))
-  );
 };
 
 /******************

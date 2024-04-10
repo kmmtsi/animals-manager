@@ -5,7 +5,7 @@ import { KeyedMutator } from "swr";
 import { Animal, Breeding, Folder } from "../../../utils/common/definitions";
 import { pageGapY, pageTitle } from "../../../utils/css";
 import { Breadcrumb } from "../../generalUI/Breadcrumb";
-import { NewMsg } from "../../generalUI/NewMsg";
+import { Msg } from "../../generalUI/Msg";
 import { FolderInfo } from "./FolderInfo";
 import { FolderUpdate } from "./FolderUpdate";
 
@@ -15,18 +15,21 @@ export const FolderPage = <T extends Animal | Breeding>({
   allItems,
   foldersMutator,
   itemsMutator,
+  handleDeleteItems,
 }: {
   type: T extends Animal ? "animalsFolder" : "breedingsFolder";
   allFolders: Folder[];
   allItems: T[];
   foldersMutator: KeyedMutator<Folder[]>;
   itemsMutator: KeyedMutator<T[]>;
+  handleDeleteItems: (checkedItems: T[]) => Promise<void>;
 }) => {
   const { t } = useTranslation();
   const { folderId } = useParams();
   const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
   const folder = allFolders.find((folder) => folder.id === folderId);
+
   if (folder) {
     return (
       <div className={pageGapY}>
@@ -58,11 +61,12 @@ export const FolderPage = <T extends Animal | Breeding>({
             foldersMutator={foldersMutator}
             itemsMutator={itemsMutator}
             setIsUpdate={setIsUpdate}
+            handleDeleteItems={handleDeleteItems}
           />
         )}
       </div>
     );
   } else {
-    return <NewMsg role="err">{t("folderNotFound")}</NewMsg>;
+    return <Msg role="err">{t("folderNotFound")}</Msg>;
   }
 };

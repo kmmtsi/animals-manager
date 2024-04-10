@@ -1,26 +1,25 @@
-import { useTranslation } from "react-i18next";
-import { convertErrToMsg } from "../../../../../utils/common/commonUtils";
 import { Animal, Breeding } from "../../../../../utils/common/definitions";
-import { useToast } from "../../../toast/useToast";
-import { Table } from "./Table";
+import { HandleItemClick, Table } from "./Table";
 import { TableMenu } from "./TableMenu";
-import { RenderDataBundle, useCheckTable, useFsToS } from "./tableUtils";
+import { HandleDeleteItems } from "./TableMenuLeft";
+import { useCheckTable, useColumnPreferences } from "./tableUtils";
 
 export const TableView = <T extends Animal | Breeding>({
   type,
   items,
   handleDeleteItems,
+  hideCheckbox,
+  handleItemClick,
 }: {
   type: T extends Animal ? "animals" : "breedings";
   items: T[];
-  handleDeleteItems: (checkedItems: T[]) => Promise<void>;
+  handleDeleteItems: HandleDeleteItems<T>;
+  hideCheckbox?: boolean;
+  handleItemClick: HandleItemClick;
 }) => {
-  const showToast = useToast();
-  const { t } = useTranslation();
-
   const { checkedItems, check, checkAll, clearCheck } = useCheckTable<T>();
 
-  const { fsToS, handleCheckFToS } = useFsToS<T>(type);
+  const { fsToS, handleCheckFToS } = useColumnPreferences<T>(type);
 
   return (
     <div className="space-y-3">
@@ -30,17 +29,8 @@ export const TableView = <T extends Animal | Breeding>({
         checkedItems={checkedItems}
         fsToS={fsToS}
         handleCheckFToS={handleCheckFToS}
-        onDeleteClick={async () => {
-          try {
-            await handleDeleteItems(checkedItems);
-            clearCheck();
-            showToast(
-              t(type === "animals" ? "animalsDeleted" : "breedingsDeleted")
-            );
-          } catch (err) {
-            showToast(convertErrToMsg(err));
-          }
-        }}
+        handleDeleteItems={handleDeleteItems}
+        clearCheck={clearCheck}
       />
       <div className="overflow-x-auto">
         <Table
@@ -50,6 +40,8 @@ export const TableView = <T extends Animal | Breeding>({
           check={check}
           checkAll={checkAll}
           fsToS={fsToS}
+          hideCheckbox={hideCheckbox}
+          handleItemClick={handleItemClick}
         />
       </div>
     </div>

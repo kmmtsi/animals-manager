@@ -1,6 +1,5 @@
 import { faHouse } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { t } from "i18next";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -10,17 +9,17 @@ import {
   getPNForBreedingCreate,
   getPNForBreedings,
   getPathToAccount,
+  getPathToAllAnimals,
   getPathToAllAnimalsFolders,
+  getPathToAllBreedings,
   getPathToAllBreedingsFolders,
   getPathToAnimalCreate,
-  getPathToAnimals,
   getPathToAnimalsFolderCreate,
   getPathToBreedingCreate,
-  getPathToBreedings,
   getPathToBreedingsFolderCreate,
-  getPathToHome,
 } from "../../utils/common/pageUtils";
-import { linkUnderline } from "../../utils/css";
+import { textLink } from "../../utils/css";
+import { useTranslation } from "react-i18next";
 
 export const Breadcrumb = ({
   page,
@@ -42,23 +41,25 @@ export const Breadcrumb = ({
     | "allBreedingsFolders";
   dynamic?: string;
 }) => {
+  const {t} = useTranslation();
+
   const home = {
     name: <FontAwesomeIcon icon={faHouse} />,
-    absPath: getPathToHome(),
+    absPath: getPathToAllAnimals(),
   };
 
   const account = {
-    name: getPNForAccount(),
+    name: t(getPNForAccount()),
     absPath: getPathToAccount(),
   };
 
   const animals = {
-    name: getPNForAnimals(),
-    absPath: getPathToAnimals(),
+    name: t(getPNForAnimals()),
+    absPath: getPathToAllAnimals(),
   };
 
   const animalCreate = {
-    name: getPNForAnimalCreate(),
+    name: t(getPNForAnimalCreate()),
     absPath: getPathToAnimalCreate(),
   };
 
@@ -68,12 +69,12 @@ export const Breadcrumb = ({
   };
 
   const breedings = {
-    name: getPNForBreedings(),
-    absPath: getPathToBreedings(),
+    name: t(getPNForBreedings()),
+    absPath: getPathToAllBreedings(),
   };
 
   const breedingCreate = {
-    name: getPNForBreedingCreate(),
+    name: t(getPNForBreedingCreate()),
     absPath: getPathToBreedingCreate(),
   };
 
@@ -166,7 +167,7 @@ export const Breadcrumb = ({
                 /* 最後のページはリンクを貼らない */
                 <span>{page.name}</span>
               ) : (
-                <Link to={page.absPath} className={linkUnderline}>
+                <Link to={page.absPath} className={textLink}>
                   {page.name}
                 </Link>
               )}

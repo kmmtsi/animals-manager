@@ -1,21 +1,31 @@
 import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-
-import translation_ja from "./locales/ja.json";
-// import translation_en from "./locales/en.json";
+import { initReactI18next } from "react-i18next";
+import commonEn from "./locales/en/commonEn.json";
+import commonJa from "./locales/ja/commonJa.json";
+import lpEn from "./locales/en/lpEn.json";
+import lpJa from "./locales/ja/lpJa.json";
+import privacyPolicyJa from "./locales/ja/privacyPolicyJa.json";
+import privacyPolicyEn from "./locales/en/privacyPolicyEn.json";
 
 i18n
   .use(initReactI18next)
-  .use(LanguageDetector) // ユーザーの言語設定を検知するために必要
+  // ユーザーの言語設定を検知（これによりlngプロパティは不要）
+  .use(LanguageDetector)
   .init({
+    ns: ["common", "lp", "privacyPolicy"],
+    defaultNS: "common",
     resources: {
       ja: {
-        translation: translation_ja,
+        common: commonJa,
+        lp: lpJa,
+        privacyPolicy: privacyPolicyJa,
       },
-    //   en: {
-    //     translation: translation_en,
-    //   },
+      en: {
+        common: commonEn,
+        lp: lpEn,
+        privacyPolicy: privacyPolicyEn,
+      },
     },
     fallbackLng: "ja", // デフォルトの言語を設定, これがないとキーが表示される
     returnObjects: true,
