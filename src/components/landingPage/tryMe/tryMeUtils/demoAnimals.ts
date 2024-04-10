@@ -1,5 +1,4 @@
 import { Animal } from "../../../../utils/common/definitions";
-import { demoTimestamp, demoUserId } from "./tryMeUtils";
 import {
   harringtonsId,
   miniKaren,
@@ -9,6 +8,7 @@ import {
   miniTed,
   wheelersId,
 } from "./sharedData";
+import { demoTimestamp, demoUserId } from "./tryMeUtils";
 
 export type AnimalCommonData = Omit<
   Animal,
@@ -51,16 +51,16 @@ const nancy: AnimalCommonData = {
   note: "",
 };
 
-const dustin: AnimalCommonData = {
-  id: "dustin",
-  name: "Dustin",
-  sex: "male",
-  breedingIdAsChild: "",
-  breedingIdsAsParent: [],
-  healthCondition: "healthy",
-  dateOfBirth: "2023-05-29",
-  note: "",
-};
+// const dustin: AnimalCommonData = {
+//   id: "dustin",
+//   name: "Dustin",
+//   sex: "male",
+//   breedingIdAsChild: "",
+//   breedingIdsAsParent: [],
+//   healthCondition: "healthy",
+//   dateOfBirth: "2023-05-29",
+//   note: "",
+// };
 
 const steve: AnimalCommonData = {
   ...miniSteve,

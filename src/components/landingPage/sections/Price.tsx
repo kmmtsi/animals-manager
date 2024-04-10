@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { getPathToSignUp } from "../../../utils/common/pageUtils";
 import { lpContainer, lpSectionFlex, lpSectionTitle } from "../../../utils/css";
+import imgUrl from "../../../assets/cat.png";
 
 export const Price = () => {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export const Price = () => {
           {tLp("price.title")}
         </h2>
         <div>
-          <img src="src\assets\cat.png" className="max-w-24" />
+          <img src={imgUrl} className="max-w-24" />
         </div>
         {/* 概要 */}
         <div className="flex flex-col items-center gap-4 sm:text-center">

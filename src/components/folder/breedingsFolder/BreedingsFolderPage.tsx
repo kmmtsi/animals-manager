@@ -1,8 +1,6 @@
 import { User } from "firebase/auth";
 import { useOutletContext } from "react-router-dom";
-import { useFetchAnimals } from "../../../utils/animal/animalUtils";
 import { useFetchBreedings } from "../../../utils/breeding/breedingUtils";
-import { handleDeleteBreedings } from "../../../utils/breeding/deleteBreedings";
 import { useFetchBreedingsFolders } from "../../../utils/folder/folderUtils";
 import { Msg } from "../../generalUI/Msg";
 import { FolderPage } from "../base/FolderPage";
@@ -17,11 +15,7 @@ export const BreedingsFolderPage = () => {
     authUser.uid
   );
 
-  const { allAnimals, animalsMutator, animalsErr } = useFetchAnimals(
-    authUser.uid
-  );
-
-  if (allBreedingsFolders && allBreedings && allAnimals) {
+  if (allBreedingsFolders && allBreedings) {
     return (
       <FolderPage
         type="breedingsFolder"
@@ -29,27 +23,13 @@ export const BreedingsFolderPage = () => {
         allItems={allBreedings}
         foldersMutator={breedingsFoldersMutator}
         itemsMutator={breedingsMutator}
-        handleDeleteItems={async (checkedItems) => {
-          await handleDeleteBreedings(
-            checkedItems,
-            authUser.uid,
-            allBreedings,
-            allAnimals,
-            allBreedingsFolders,
-            breedingsMutator,
-            animalsMutator,
-            breedingsFoldersMutator
-          );
-        }}
       />
     );
   }
-  if (breedingsFoldersErr || breedingsErr || animalsErr) {
+  if (breedingsFoldersErr || breedingsErr) {
     return (
       <Msg role="err">
-        {breedingsFoldersErr?.message ||
-          breedingsErr?.message ||
-          animalsErr?.message}
+        {breedingsFoldersErr?.message || breedingsErr?.message}
       </Msg>
     );
   }

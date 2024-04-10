@@ -15,14 +15,12 @@ export const FolderPage = <T extends Animal | Breeding>({
   allItems,
   foldersMutator,
   itemsMutator,
-  handleDeleteItems,
 }: {
   type: T extends Animal ? "animalsFolder" : "breedingsFolder";
   allFolders: Folder[];
   allItems: T[];
   foldersMutator: KeyedMutator<Folder[]>;
   itemsMutator: KeyedMutator<T[]>;
-  handleDeleteItems: (checkedItems: T[]) => Promise<void>;
 }) => {
   const { t } = useTranslation();
   const { folderId } = useParams();
@@ -61,7 +59,6 @@ export const FolderPage = <T extends Animal | Breeding>({
             foldersMutator={foldersMutator}
             itemsMutator={itemsMutator}
             setIsUpdate={setIsUpdate}
-            handleDeleteItems={handleDeleteItems}
           />
         )}
       </div>

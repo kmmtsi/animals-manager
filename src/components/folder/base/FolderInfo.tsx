@@ -12,17 +12,6 @@ import { Animals } from "../../animal/animals/Animals";
 import { Breedings } from "../../breeding/breedings/Breedings";
 import { ItemInfoBase } from "../../generalUI/animalAndBreeding/item/ItemInfoBase";
 
-export type FolderInfoProps<T> = {
-  type: T extends Animal ? "animalsFolder" : "breedingsFolder";
-  folder: Folder;
-  allFolders: Folder[];
-  allItems: T[];
-  foldersMutator: KeyedMutator<Folder[]>;
-  itemsMutator: KeyedMutator<T[]>;
-  setIsUpdate: Dispatch<SetStateAction<boolean>>;
-  handleDeleteItems: (checkedItems: T[]) => Promise<void>;
-};
-
 export const FolderInfo = <T extends Animal | Breeding>({
   type,
   folder,
@@ -31,8 +20,15 @@ export const FolderInfo = <T extends Animal | Breeding>({
   foldersMutator,
   itemsMutator,
   setIsUpdate,
-  handleDeleteItems,
-}: FolderInfoProps<T>) => {
+}: {
+  type: T extends Animal ? "animalsFolder" : "breedingsFolder";
+  folder: Folder;
+  allFolders: Folder[];
+  allItems: T[];
+  foldersMutator: KeyedMutator<Folder[]>;
+  itemsMutator: KeyedMutator<T[]>;
+  setIsUpdate: Dispatch<SetStateAction<boolean>>;
+}) => {
   const authUser = useOutletContext<User>();
   const { itemIds } = folder;
 
@@ -75,12 +71,7 @@ export const FolderInfo = <T extends Animal | Breeding>({
         {type === "animalsFolder" ? (
           <Animals animals={items as Animal[]} />
         ) : (
-          <Breedings
-            breedings={items as Breeding[]}
-            handleDeleteBreedings={
-              handleDeleteItems as (checkedItems: Breeding[]) => Promise<void>
-            }
-          />
+          <Breedings breedings={items as Breeding[]} />
         )}
       </div>
     </ItemInfoBase>

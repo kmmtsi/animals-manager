@@ -25,11 +25,6 @@ export const Account = () => {
         <Breadcrumb page={"account"} />
         <h1 className={pageTitle}>{t("account")}</h1>
         <div className="space-y-6">
-          {/* username */}
-          <div className={fieldGapY}>
-            <div>{t("username")}</div>
-            <div className={infoBox}>{user.username}</div>
-          </div>
           {/* メールアドレス */}
           <div className={fieldGapY}>
             <div>{t("email")}</div>
@@ -51,6 +46,7 @@ export const Account = () => {
       </div>
     );
   }
+
   if (userErr) {
     return <Msg role="err">{userErr.message}</Msg>;
   }

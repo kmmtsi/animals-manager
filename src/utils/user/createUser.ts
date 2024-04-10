@@ -1,13 +1,12 @@
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import { User } from "../common/definitions";
 import { getTimestamp } from "../common/commonUtils";
+import { User } from "../common/definitions";
+import { db } from "../firebase";
 
 export const createUser = async (userId: string, email: string) => {
   const user: User = {
     id: userId,
     email,
-    username: "",
     createdAt: getTimestamp(),
     updatedAt: getTimestamp(),
   };

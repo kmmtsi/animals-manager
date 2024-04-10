@@ -7,6 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import imgUrl from "../../../../assets/pigeon.png";
 import {
   lpContainer,
   lpSectionFlex,
@@ -94,7 +95,7 @@ export const WhatYouCanDo = () => {
               />
               {/* 画像 */}
               <div className="max-w-24 self-end pt-4">
-                <img src="src\assets\pigeon.png" />
+                <img src={imgUrl} />
               </div>
             </div>
           </WhatYouCanDoBox>
